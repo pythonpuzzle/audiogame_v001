@@ -4,18 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Calibrador de sensores</title>
+  <title>Audiojuego - Calibración y prototipo</title>
 
   <style>
     :root {
       --bg: #050505;
       --panel: #111;
+      --panel2: #181818;
       --text: #f2f2f2;
       --muted: #aaa;
       --good: #8cff8c;
       --warn: #ffd36b;
       --bad: #ff7d7d;
       --line: #333;
+      --button: #ffffff;
+      --buttonText: #000000;
     }
 
     html, body {
@@ -33,25 +36,42 @@
     }
 
     h1 {
-      font-size: 1.4rem;
-      margin: 0 0 12px 0;
+      font-size: 1.45rem;
+      margin: 0 0 8px 0;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin: 0 0 10px 0;
     }
 
     p {
       color: var(--muted);
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     button {
       width: 100%;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       padding: 14px;
       border: 0;
       border-radius: 10px;
-      margin: 8px 0;
-      background: white;
-      color: black;
+      margin: 7px 0;
+      background: var(--button);
+      color: var(--buttonText);
       font-weight: 700;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .dangerButton {
+      background: #ffdddd;
+    }
+
+    .mainButton {
+      background: #dfffdc;
     }
 
     .grid {
@@ -59,6 +79,7 @@
       grid-template-columns: 1fr;
       gap: 12px;
       margin-top: 12px;
+      padding-bottom: 40px;
     }
 
     .card {
@@ -68,9 +89,9 @@
       padding: 12px;
     }
 
-    .card h2 {
-      font-size: 1.05rem;
-      margin: 0 0 8px 0;
+    .card.highlight {
+      background: var(--panel2);
+      border-color: #777;
     }
 
     .row {
@@ -78,7 +99,7 @@
       justify-content: space-between;
       gap: 12px;
       border-bottom: 1px solid #222;
-      padding: 6px 0;
+      padding: 7px 0;
       font-variant-numeric: tabular-nums;
     }
 
@@ -96,13 +117,32 @@
       word-break: break-word;
     }
 
+    .bigValue {
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--warn);
+      text-align: center;
+      margin: 10px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .decision {
+      font-size: 1.25rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--good);
+      margin: 10px 0;
+      min-height: 1.6rem;
+    }
+
     .barOuter {
       width: 100%;
-      height: 22px;
+      height: 24px;
       background: #222;
       border-radius: 999px;
       overflow: hidden;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     .barInner {
@@ -112,16 +152,51 @@
       transition: width 0.05s linear;
     }
 
-    .big {
-      font-size: 1.3rem;
-      color: var(--warn);
-      font-weight: bold;
+    .gammaMeter {
+      position: relative;
+      height: 34px;
+      background: #222;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 6px 0;
     }
 
-    .event {
-      min-height: 2.4rem;
-      color: var(--warn);
-      font-weight: bold;
+    .gammaCenter {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #777;
+    }
+
+    .gammaZoneLeft {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 38.8%;
+      background: rgba(255, 125, 125, 0.22);
+    }
+
+    .gammaZoneRight {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 38.8%;
+      background: rgba(140, 255, 140, 0.22);
+    }
+
+    .gammaNeedle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      border-radius: 999px;
+      background: #fff;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     .small {
@@ -132,43 +207,128 @@
     code {
       color: var(--good);
     }
+
+    .event {
+      min-height: 2.4rem;
+      color: var(--warn);
+      font-weight: bold;
+    }
+
+    .statusBox {
+      background: #050505;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      color: var(--warn);
+      min-height: 2.4rem;
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
-  <h1>Calibrador de sensores</h1>
+  <h1>Audiojuego: calibración y prototipo</h1>
 
   <p>
-    Pulsa iniciar. Después mueve el móvil, inclínalo, sacúdelo y da golpes suaves
-    cerca del micrófono. Esta página mostrará en directo los datos disponibles.
+    Primero inicia sensores y micrófono. Después inclina el móvil:
+    <strong>gamma Y &gt; +10</strong> será una opción,
+    y <strong>gamma Y &lt; -10</strong> será la otra.
   </p>
 
-  <button id="startButton">Iniciar sensores y micrófono</button>
-  <button id="speakButton">Probar voz</button>
+  <button id="startSensorsButton">1. Iniciar sensores y micrófono</button>
+  <button id="speakButton">2. Probar voz</button>
+  <button id="startSimulationButton" class="mainButton">3. Iniciar simulación</button>
+  <button id="resetSimulationButton" class="dangerButton">Reiniciar simulación</button>
 
   <div class="grid">
+
+    <section class="card highlight">
+      <h2>Control por inclinación gamma Y</h2>
+
+      <div class="bigValue" id="gammaBig">---</div>
+
+      <div class="gammaMeter">
+        <div class="gammaZoneLeft"></div>
+        <div class="gammaZoneRight"></div>
+        <div class="gammaCenter"></div>
+        <div class="gammaNeedle" id="gammaNeedle"></div>
+      </div>
+
+      <div class="decision" id="gammaDecision">
+        Zona neutra
+      </div>
+
+      <div class="row">
+        <span class="label">Umbral opción 1</span>
+        <span class="value">gamma &gt; +10</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Umbral opción 2</span>
+        <span class="value">gamma &lt; -10</span>
+      </div>
+
+      <p class="small">
+        La aguja representa gamma entre -90 y +90 grados. Si se queda invertido,
+        luego puedes intercambiar las opciones en el código.
+      </p>
+    </section>
+
     <section class="card">
-      <h2>Estado</h2>
+      <h2>Simulación</h2>
+
+      <div class="statusBox" id="simulationStatus">
+        Simulación no iniciada.
+      </div>
+
+      <div class="row">
+        <span class="label">Estado</span>
+        <span class="value" id="simulationState">---</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Última elección</span>
+        <span class="value" id="lastChoice">---</span>
+      </div>
+
+      <p class="small">
+        Durante la simulación, cuando termine de hablar, quedará en silencio
+        esperando que inclines el móvil.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Estado general</h2>
+
       <div class="row">
         <span class="label">Origen</span>
         <span class="value" id="originValue">---</span>
       </div>
+
       <div class="row">
         <span class="label">Contexto seguro</span>
         <span class="value" id="secureValue">---</span>
       </div>
+
       <div class="row">
         <span class="label">DeviceMotion</span>
         <span class="value" id="motionSupport">---</span>
       </div>
+
       <div class="row">
         <span class="label">DeviceOrientation</span>
         <span class="value" id="orientationSupport">---</span>
       </div>
+
       <div class="row">
         <span class="label">Micrófono</span>
         <span class="value" id="micStatus">---</span>
       </div>
+
       <div class="row">
         <span class="label">Último evento</span>
         <span class="value" id="lastEvent">---</span>
@@ -176,42 +336,47 @@
     </section>
 
     <section class="card">
-      <h2>Inclinación / orientación</h2>
+      <h2>Orientación completa</h2>
+
       <div class="row">
         <span class="label">alpha Z</span>
         <span class="value" id="alphaValue">---</span>
       </div>
+
       <div class="row">
         <span class="label">beta X</span>
         <span class="value" id="betaValue">---</span>
       </div>
+
       <div class="row">
         <span class="label">gamma Y</span>
         <span class="value" id="gammaValue">---</span>
       </div>
-      <p class="small">
-        Si estos valores no cambian al inclinar el móvil, el navegador no está entregando datos de orientación.
-      </p>
     </section>
 
     <section class="card">
       <h2>Aceleración sin gravedad</h2>
+
       <div class="row">
         <span class="label">x</span>
         <span class="value" id="accX">---</span>
       </div>
+
       <div class="row">
         <span class="label">y</span>
         <span class="value" id="accY">---</span>
       </div>
+
       <div class="row">
         <span class="label">z</span>
         <span class="value" id="accZ">---</span>
       </div>
+
       <div class="row">
         <span class="label">intensidad</span>
         <span class="value" id="accTotal">---</span>
       </div>
+
       <div class="barOuter">
         <div class="barInner" id="accBar"></div>
       </div>
@@ -219,22 +384,27 @@
 
     <section class="card">
       <h2>Aceleración con gravedad</h2>
+
       <div class="row">
         <span class="label">x</span>
         <span class="value" id="gravX">---</span>
       </div>
+
       <div class="row">
         <span class="label">y</span>
         <span class="value" id="gravY">---</span>
       </div>
+
       <div class="row">
         <span class="label">z</span>
         <span class="value" id="gravZ">---</span>
       </div>
+
       <div class="row">
         <span class="label">intensidad</span>
         <span class="value" id="gravTotal">---</span>
       </div>
+
       <p class="small">
         En reposo suele rondar 9.8 m/s² por la gravedad.
       </p>
@@ -242,39 +412,44 @@
 
     <section class="card">
       <h2>Sonido del micrófono</h2>
+
       <div class="row">
         <span class="label">nivel RMS</span>
         <span class="value" id="soundRms">---</span>
       </div>
+
       <div class="row">
         <span class="label">nivel %</span>
         <span class="value" id="soundPercent">---</span>
       </div>
+
       <div class="barOuter">
         <div class="barInner" id="soundBar"></div>
       </div>
+
       <p class="small">
-        Prueba a dar un toque con el dedo cerca del micrófono, chasquear los dedos o soplar suavemente.
+        Sirve para probar que se detectan golpes, chasquidos o ruido ambiente.
+        En este prototipo la elección se hace con inclinación, no con sonido.
       </p>
     </section>
 
     <section class="card">
       <h2>Detecciones</h2>
+
       <div class="event" id="eventBox">
         Sin detecciones todavía.
       </div>
-      <p class="small">
-        Umbral sacudida: <code id="shakeThresholdText"></code>.
-        Umbral golpe sonoro: <code id="soundThresholdText"></code>.
-      </p>
     </section>
+
   </div>
 
   <script>
     const $ = (id) => document.getElementById(id);
 
-    const startButton = $("startButton");
+    const startSensorsButton = $("startSensorsButton");
     const speakButton = $("speakButton");
+    const startSimulationButton = $("startSimulationButton");
+    const resetSimulationButton = $("resetSimulationButton");
 
     const originValue = $("originValue");
     const secureValue = $("secureValue");
@@ -286,6 +461,9 @@
     const alphaValue = $("alphaValue");
     const betaValue = $("betaValue");
     const gammaValue = $("gammaValue");
+    const gammaBig = $("gammaBig");
+    const gammaNeedle = $("gammaNeedle");
+    const gammaDecision = $("gammaDecision");
 
     const accX = $("accX");
     const accY = $("accY");
@@ -303,24 +481,40 @@
     const soundBar = $("soundBar");
 
     const eventBox = $("eventBox");
-    const shakeThresholdText = $("shakeThresholdText");
-    const soundThresholdText = $("soundThresholdText");
 
-    const SHAKE_THRESHOLD = 15;
-    const SOUND_HIT_THRESHOLD = 18;
+    const simulationStatus = $("simulationStatus");
+    const simulationState = $("simulationState");
+    const lastChoice = $("lastChoice");
 
-    let started = false;
-    let lastShakeTime = 0;
-    let lastSoundHitTime = 0;
+    const GAMMA_POSITIVE_THRESHOLD = 10;
+    const GAMMA_NEGATIVE_THRESHOLD = -10;
+    const SELECTION_COOLDOWN_MS = 1200;
 
-    shakeThresholdText.textContent = SHAKE_THRESHOLD;
-    soundThresholdText.textContent = SOUND_HIT_THRESHOLD + "%";
+    let sensorsStarted = false;
+    let microphoneStarted = false;
+
+    let currentGamma = null;
+
+    let simulationStarted = false;
+    let simulationWaitingForChoice = false;
+    let simulationFinished = false;
+    let speaking = false;
+
+    let lastSelectionTime = 0;
+
+    const textoInicial =
+      "Bienvenido al prototipo. " +
+      "Inclina el móvil hacia un lado para elegir la primera opción, " +
+      "y hacia el otro lado para elegir la segunda opción. " +
+      "Opción 1: Has elegido la opción 1. " +
+      "Opción 2: Has elegido la opción 2.";
 
     originValue.textContent = location.href;
     secureValue.textContent = window.isSecureContext ? "Sí" : "No";
     motionSupport.textContent = "DeviceMotionEvent" in window ? "Disponible" : "No disponible";
     orientationSupport.textContent = "DeviceOrientationEvent" in window ? "Disponible" : "No disponible";
     micStatus.textContent = "Sin iniciar";
+    simulationState.textContent = "No iniciada";
 
     function formatNumber(n, decimals = 2) {
       if (n === null || n === undefined || Number.isNaN(n)) return "---";
@@ -333,13 +527,49 @@
       lastEvent.textContent = text;
 
       if ("vibrate" in navigator) {
-        navigator.vibrate(80);
+        navigator.vibrate(70);
       }
     }
 
     function setBar(element, value, max) {
       const percent = Math.max(0, Math.min(100, (value / max) * 100));
       element.style.width = percent + "%";
+    }
+
+    function updateSimulationState(text) {
+      simulationState.textContent = text;
+    }
+
+    function updateSimulationStatus(text) {
+      simulationStatus.textContent = text;
+    }
+
+    function updateGammaDisplay(gamma) {
+      currentGamma = gamma;
+
+      gammaValue.textContent = formatNumber(gamma);
+      gammaBig.textContent = formatNumber(gamma, 1);
+
+      /*
+        DeviceOrientation gamma suele estar entre -90 y +90.
+        Lo convertimos a una posición de 0% a 100%.
+      */
+      const clamped = Math.max(-90, Math.min(90, gamma));
+      const percent = ((clamped + 90) / 180) * 100;
+      gammaNeedle.style.left = percent + "%";
+
+      if (gamma > GAMMA_POSITIVE_THRESHOLD) {
+        gammaDecision.textContent = "Opción 1 detectada: gamma > +10";
+        gammaDecision.style.color = "var(--good)";
+      } else if (gamma < GAMMA_NEGATIVE_THRESHOLD) {
+        gammaDecision.textContent = "Opción 2 detectada: gamma < -10";
+        gammaDecision.style.color = "var(--bad)";
+      } else {
+        gammaDecision.textContent = "Zona neutra";
+        gammaDecision.style.color = "var(--warn)";
+      }
+
+      checkSimulationChoiceFromGamma(gamma);
     }
 
     async function requestMotionPermissionIfNeeded() {
@@ -365,10 +595,17 @@
     }
 
     function startMotionSensors() {
+      if (sensorsStarted) return;
+
+      sensorsStarted = true;
+
       window.addEventListener("deviceorientation", (event) => {
         alphaValue.textContent = formatNumber(event.alpha);
         betaValue.textContent = formatNumber(event.beta);
-        gammaValue.textContent = formatNumber(event.gamma);
+
+        if (event.gamma !== null && event.gamma !== undefined) {
+          updateGammaDisplay(event.gamma);
+        }
       });
 
       window.addEventListener("devicemotion", (event) => {
@@ -396,28 +633,12 @@
         gravY.textContent = formatNumber(gy);
         gravZ.textContent = formatNumber(gz);
         gravTotal.textContent = formatNumber(gTotal);
-
-        const now = Date.now();
-
-        if (aTotal > SHAKE_THRESHOLD && now - lastShakeTime > 900) {
-          lastShakeTime = now;
-
-          let direction = "sacudida";
-
-          if (Math.abs(ax) > Math.abs(ay) && Math.abs(ax) > Math.abs(az)) {
-            direction = ax > 0 ? "sacudida eje X positiva" : "sacudida eje X negativa";
-          } else if (Math.abs(ay) > Math.abs(ax) && Math.abs(ay) > Math.abs(az)) {
-            direction = ay > 0 ? "sacudida eje Y positiva" : "sacudida eje Y negativa";
-          } else if (Math.abs(az) > Math.abs(ax) && Math.abs(az) > Math.abs(ay)) {
-            direction = az > 0 ? "sacudida eje Z positiva" : "sacudida eje Z negativa";
-          }
-
-          setEvent(direction + " - intensidad " + formatNumber(aTotal));
-        }
       });
     }
 
     async function startMicrophone() {
+      if (microphoneStarted) return;
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         micStatus.textContent = "No soportado";
         throw new Error("Este navegador no permite acceder al micrófono.");
@@ -434,6 +655,7 @@
         video: false
       });
 
+      microphoneStarted = true;
       micStatus.textContent = "Activo";
 
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -441,7 +663,6 @@
       const analyser = audioContext.createAnalyser();
 
       analyser.fftSize = 2048;
-
       source.connect(analyser);
 
       const data = new Uint8Array(analyser.fftSize);
@@ -457,23 +678,11 @@
         }
 
         const rms = Math.sqrt(sumSquares / data.length);
-
-        /*
-          Este porcentaje no es una medida física exacta.
-          Es una escala útil para calibrar golpes, chasquidos y ruido ambiente.
-        */
         const percent = Math.min(100, rms * 300);
 
         soundRms.textContent = formatNumber(rms, 4);
         soundPercent.textContent = formatNumber(percent, 1) + "%";
         setBar(soundBar, percent, 100);
-
-        const now = Date.now();
-
-        if (percent > SOUND_HIT_THRESHOLD && now - lastSoundHitTime > 500) {
-          lastSoundHitTime = now;
-          setEvent("golpe/ruido detectado - nivel " + formatNumber(percent, 1) + "%");
-        }
 
         requestAnimationFrame(analyze);
       }
@@ -482,44 +691,158 @@
     }
 
     function speak(text) {
-      speechSynthesis.cancel();
+      return new Promise((resolve) => {
+        speaking = true;
+        speechSynthesis.cancel();
 
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = "es-ES";
-      u.rate = 1;
-      u.pitch = 1;
-      u.volume = 1;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "es-ES";
+        u.rate = 1;
+        u.pitch = 1;
+        u.volume = 1;
 
-      speechSynthesis.speak(u);
+        u.onend = () => {
+          speaking = false;
+          resolve();
+        };
+
+        u.onerror = () => {
+          speaking = false;
+          resolve();
+        };
+
+        speechSynthesis.speak(u);
+      });
     }
 
-    async function startAll() {
-      if (started) return;
-
-      started = true;
-
+    async function startAllSensorsAndMic() {
       try {
-        lastEvent.textContent = "Iniciando...";
         await requestMotionPermissionIfNeeded();
-
         startMotionSensors();
         await startMicrophone();
 
-        setEvent("sensores iniciados");
-        speak("Calibrador iniciado. Mueve el móvil, inclínalo, sacúdelo o da un golpe cerca del micrófono.");
-
+        setEvent("sensores y micrófono iniciados");
+        speak("Sensores y micrófono iniciados. Inclina el móvil para calibrar gamma.");
       } catch (error) {
-        started = false;
         setEvent("error: " + error.message);
         speak("Ha ocurrido un error iniciando los sensores.");
       }
     }
 
-    startButton.addEventListener("click", startAll);
+    async function startSimulation() {
+      if (!sensorsStarted) {
+        try {
+          await requestMotionPermissionIfNeeded();
+          startMotionSensors();
+        } catch (error) {
+          setEvent("error: " + error.message);
+          speak("No se han podido iniciar los sensores.");
+          return;
+        }
+      }
+
+      simulationStarted = true;
+      simulationWaitingForChoice = false;
+      simulationFinished = false;
+      lastChoice.textContent = "---";
+
+      updateSimulationState("Leyendo introducción");
+      updateSimulationStatus("Leyendo introducción...");
+      setEvent("simulación iniciada");
+
+      await speak(textoInicial);
+
+      if (simulationFinished) return;
+
+      simulationWaitingForChoice = true;
+      updateSimulationState("Esperando inclinación");
+      updateSimulationStatus("Silencio. Esperando gamma > +10 o gamma < -10.");
+
+      if ("vibrate" in navigator) {
+        navigator.vibrate([80, 60, 80]);
+      }
+    }
+
+    async function checkSimulationChoiceFromGamma(gamma) {
+      if (!simulationStarted) return;
+      if (!simulationWaitingForChoice) return;
+      if (simulationFinished) return;
+      if (speaking) return;
+
+      const now = Date.now();
+
+      if (now - lastSelectionTime < SELECTION_COOLDOWN_MS) {
+        return;
+      }
+
+      if (gamma > GAMMA_POSITIVE_THRESHOLD) {
+        lastSelectionTime = now;
+        await chooseOption(1);
+      } else if (gamma < GAMMA_NEGATIVE_THRESHOLD) {
+        lastSelectionTime = now;
+        await chooseOption(2);
+      }
+    }
+
+    async function chooseOption(optionNumber) {
+      if (!simulationWaitingForChoice || simulationFinished) return;
+
+      simulationWaitingForChoice = false;
+      simulationFinished = true;
+
+      if (optionNumber === 1) {
+        lastChoice.textContent = "Opción 1";
+        updateSimulationState("Opción 1 elegida");
+        updateSimulationStatus("Has elegido la opción 1.");
+        setEvent("opción 1 elegida por gamma > +10");
+
+        if ("vibrate" in navigator) {
+          navigator.vibrate([80, 40, 80]);
+        }
+
+        await speak("Has elegido la opción 1.");
+      } else {
+        lastChoice.textContent = "Opción 2";
+        updateSimulationState("Opción 2 elegida");
+        updateSimulationStatus("Has elegido la opción 2.");
+        setEvent("opción 2 elegida por gamma < -10");
+
+        if ("vibrate" in navigator) {
+          navigator.vibrate([200]);
+        }
+
+        await speak("Has elegido la opción 2.");
+      }
+
+      updateSimulationState("Finalizada");
+      updateSimulationStatus("Fin del prototipo.");
+      await speak("Fin del prototipo.");
+    }
+
+    function resetSimulation() {
+      speechSynthesis.cancel();
+
+      speaking = false;
+      simulationStarted = false;
+      simulationWaitingForChoice = false;
+      simulationFinished = false;
+      lastSelectionTime = 0;
+
+      lastChoice.textContent = "---";
+      updateSimulationState("No iniciada");
+      updateSimulationStatus("Simulación reiniciada. Pulsa iniciar simulación.");
+      setEvent("simulación reiniciada");
+    }
+
+    startSensorsButton.addEventListener("click", startAllSensorsAndMic);
 
     speakButton.addEventListener("click", () => {
       speak("Prueba de voz. Si escuchas esto, la síntesis de voz funciona.");
     });
+
+    startSimulationButton.addEventListener("click", startSimulation);
+
+    resetSimulationButton.addEventListener("click", resetSimulation);
   </script>
 </body>
 </html>
