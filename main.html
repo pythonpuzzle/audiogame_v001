@@ -2,165 +2,976 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prueba de voces TTS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>El Faro Bajo la Marea</title>
+
   <style>
-    body {
+    :root {
+      --bg: #050505;
+      --panel: #111;
+      --panel2: #181818;
+      --text: #f2f2f2;
+      --muted: #aaa;
+      --good: #8cff8c;
+      --warn: #ffd36b;
+      --bad: #ff7d7d;
+      --line: #333;
+    }
+
+    html, body {
       margin: 0;
-      padding: 16px;
-      background: #050505;
-      color: #f2f2f2;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
       font-family: system-ui, sans-serif;
+      min-height: 100%;
+    }
+
+    body {
+      padding: 16px;
+      box-sizing: border-box;
     }
 
     h1 {
-      font-size: 1.4rem;
+      font-size: 1.45rem;
+      margin: 0 0 8px 0;
     }
 
-    textarea {
-      width: 100%;
-      min-height: 90px;
-      font-size: 1rem;
-      box-sizing: border-box;
-      border-radius: 10px;
-      padding: 10px;
+    h2 {
+      font-size: 1.05rem;
+      margin: 0 0 10px 0;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.45;
     }
 
     button {
       width: 100%;
-      margin: 6px 0;
-      padding: 12px;
+      font-size: 1.05rem;
+      padding: 14px;
       border: 0;
       border-radius: 10px;
-      font-size: 1rem;
-      font-weight: bold;
+      margin: 7px 0;
+      background: #fff;
+      color: #000;
+      font-weight: 700;
     }
 
-    .voice {
-      background: #111;
-      border: 1px solid #333;
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .mainButton {
+      background: #dfffdc;
+    }
+
+    .dangerButton {
+      background: #ffdddd;
+    }
+
+    .choiceButton {
+      background: #dbe8ff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+      padding-bottom: 40px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 10px;
+      padding: 12px;
+    }
+
+    .highlight {
+      background: var(--panel2);
+      border-color: #777;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #222;
+      padding: 7px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .label {
+      color: var(--muted);
+    }
+
+    .value {
+      color: var(--good);
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .bigValue {
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--warn);
+      text-align: center;
       margin: 10px 0;
+      font-variant-numeric: tabular-nums;
     }
 
-    .name {
-      font-weight: bold;
-      color: #8cff8c;
+    .decision {
+      font-size: 1.15rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--good);
+      margin: 10px 0;
+      min-height: 1.6rem;
     }
 
-    .details {
-      color: #aaa;
-      font-size: 0.9rem;
-      margin-top: 4px;
+    .gammaMeter {
+      position: relative;
+      height: 34px;
+      background: #222;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 6px 0;
+    }
+
+    .gammaZoneLeft {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 38.8%;
+      background: rgba(255, 125, 125, 0.22);
+    }
+
+    .gammaZoneRight {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 38.8%;
+      background: rgba(140, 255, 140, 0.22);
+    }
+
+    .gammaCenter {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #777;
+    }
+
+    .gammaNeedle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      border-radius: 999px;
+      background: #fff;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .statusBox {
+      background: #050505;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      color: var(--warn);
+      min-height: 2.4rem;
+      font-weight: 700;
+    }
+
+    .storyBox {
+      background: #050505;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 12px;
+      max-height: 320px;
+      overflow-y: auto;
+      color: #ddd;
+      line-height: 1.5;
+      white-space: pre-wrap;
     }
 
     .small {
-      color: #aaa;
       font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    code {
+      color: var(--good);
     }
   </style>
 </head>
 
 <body>
-  <h1>Prueba de voces disponibles</h1>
+  <h1>El Faro Bajo la Marea</h1>
 
-  <p class="small">
-    Pulsa “Cargar voces”. Luego prueba cada voz. En algunos móviles las voces tardan unos segundos en aparecer.
+  <p>
+    Audiojuego lovecraftiano controlado por inclinación.
+    Inclina el móvil hasta <strong>gamma Y &gt; +10</strong> para elegir A,
+    o hasta <strong>gamma Y &lt; -10</strong> para elegir B.
+    Si no eliges en 20 segundos, el azar decidirá.
   </p>
 
-  <textarea id="text">
-Bienvenido al prototipo. Pulsa subir el volumen para elegir la primera opción, y bajar el volumen para la segunda opción.
-  </textarea>
+  <button id="startSensorsButton">1. Iniciar sensores</button>
+  <button id="speakButton">2. Probar voz</button>
+  <button id="startStoryButton" class="mainButton">3. Iniciar historia</button>
+  <button id="stopButton" class="dangerButton">Parar / reiniciar</button>
 
-  <button id="loadVoices">Cargar voces</button>
-  <button id="stop">Parar voz</button>
+  <div class="grid">
 
-  <div id="status">Sin cargar.</div>
-  <div id="voices"></div>
+    <section class="card highlight">
+      <h2>Control por inclinación gamma Y</h2>
+
+      <div class="bigValue" id="gammaBig">---</div>
+
+      <div class="gammaMeter">
+        <div class="gammaZoneLeft"></div>
+        <div class="gammaZoneRight"></div>
+        <div class="gammaCenter"></div>
+        <div class="gammaNeedle" id="gammaNeedle"></div>
+      </div>
+
+      <div class="decision" id="gammaDecision">Zona neutra</div>
+
+      <div class="row">
+        <span class="label">Opción A</span>
+        <span class="value">gamma &gt; +10</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Opción B</span>
+        <span class="value">gamma &lt; -10</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Estado de la historia</h2>
+
+      <div class="statusBox" id="statusBox">
+        Pulsa iniciar sensores y después iniciar historia.
+      </div>
+
+      <div class="row">
+        <span class="label">Capítulo</span>
+        <span class="value" id="chapterValue">---</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Cuenta atrás</span>
+        <span class="value" id="countdownValue">---</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Última elección</span>
+        <span class="value" id="lastChoiceValue">---</span>
+      </div>
+
+      <button id="manualAButton" class="choiceButton">Elegir A manualmente</button>
+      <button id="manualBButton" class="choiceButton">Elegir B manualmente</button>
+
+      <p class="small">
+        Los botones A/B son solo de emergencia para probar desde pantalla.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Texto actual</h2>
+      <div class="storyBox" id="storyBox">
+        Aquí aparecerá el texto leído por la voz.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Variables internas</h2>
+
+      <div class="row">
+        <span class="label">Diario</span>
+        <span class="value" id="varDiario">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Llave</span>
+        <span class="value" id="varLlave">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Farol / fuego</span>
+        <span class="value" id="varFuego">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Sellos</span>
+        <span class="value" id="varSellos">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Nombre verdadero</span>
+        <span class="value" id="varNombre">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Heridas</span>
+        <span class="value" id="varHeridas">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Cordura</span>
+        <span class="value" id="varCordura">3</span>
+      </div>
+    </section>
+
+  </div>
 
   <script>
-    const textArea = document.getElementById("text");
-    const loadButton = document.getElementById("loadVoices");
-    const stopButton = document.getElementById("stop");
-    const statusDiv = document.getElementById("status");
-    const voicesDiv = document.getElementById("voices");
+    const $ = (id) => document.getElementById(id);
 
-    let voices = [];
+    const startSensorsButton = $("startSensorsButton");
+    const speakButton = $("speakButton");
+    const startStoryButton = $("startStoryButton");
+    const stopButton = $("stopButton");
+    const manualAButton = $("manualAButton");
+    const manualBButton = $("manualBButton");
 
-    function speakWithVoice(voice) {
-      speechSynthesis.cancel();
+    const gammaBig = $("gammaBig");
+    const gammaDecision = $("gammaDecision");
+    const gammaNeedle = $("gammaNeedle");
 
-      const utterance = new SpeechSynthesisUtterance(textArea.value);
-      utterance.voice = voice;
-      utterance.lang = voice.lang || "es-ES";
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+    const statusBox = $("statusBox");
+    const chapterValue = $("chapterValue");
+    const countdownValue = $("countdownValue");
+    const lastChoiceValue = $("lastChoiceValue");
+    const storyBox = $("storyBox");
 
-      speechSynthesis.speak(utterance);
+    const varDiario = $("varDiario");
+    const varLlave = $("varLlave");
+    const varFuego = $("varFuego");
+    const varSellos = $("varSellos");
+    const varNombre = $("varNombre");
+    const varHeridas = $("varHeridas");
+    const varCordura = $("varCordura");
+
+    const GAMMA_A = 10;
+    const GAMMA_B = -10;
+    const NEUTRAL_ZONE = 6;
+    const CHOICE_TIMEOUT_SECONDS = 20;
+
+    let sensorsStarted = false;
+    let currentGamma = null;
+
+    let storyRunning = false;
+    let speaking = false;
+    let waitingForChoice = false;
+    let neutralArmed = false;
+
+    let choiceResolver = null;
+    let choiceTimeout = null;
+    let countdownInterval = null;
+    let wakeLock = null;
+
+    let state = {};
+
+    function resetState() {
+      state = {
+        diario: 0,
+        llave: 0,
+        fuego: 0,
+        sellos: 0,
+        nombre: 0,
+        heridas: 0,
+        cordura: 3,
+        mapa: 0,
+        confianza: 0,
+        compasion: 0,
+        finalAction: ""
+      };
+      updateVars();
     }
 
-    function loadVoices() {
-      voices = speechSynthesis.getVoices();
+    resetState();
 
-      voicesDiv.innerHTML = "";
+    function updateVars() {
+      varDiario.textContent = state.diario;
+      varLlave.textContent = state.llave;
+      varFuego.textContent = state.fuego;
+      varSellos.textContent = state.sellos;
+      varNombre.textContent = state.nombre;
+      varHeridas.textContent = state.heridas;
+      varCordura.textContent = state.cordura;
+    }
 
-      if (!voices.length) {
-        statusDiv.textContent = "No se han encontrado voces todavía. Espera unos segundos y pulsa de nuevo.";
+    function setStatus(text) {
+      statusBox.textContent = text;
+    }
+
+    function formatNumber(n, decimals = 1) {
+      if (n === null || n === undefined || Number.isNaN(n)) return "---";
+      return Number(n).toFixed(decimals);
+    }
+
+    function vibrate(pattern) {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(pattern);
+      }
+    }
+
+    async function requestWakeLock() {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await navigator.wakeLock.request("screen");
+        }
+      } catch (e) {
+        // No pasa nada. Algunos navegadores no lo permiten.
+      }
+    }
+
+    async function requestMotionPermissionIfNeeded() {
+      if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission === "function"
+      ) {
+        const result = await DeviceOrientationEvent.requestPermission();
+        if (result !== "granted") {
+          throw new Error("Permiso de orientación denegado.");
+        }
+      }
+    }
+
+    async function startSensors() {
+      if (sensorsStarted) return;
+
+      await requestMotionPermissionIfNeeded();
+
+      window.addEventListener("deviceorientation", (event) => {
+        if (event.gamma === null || event.gamma === undefined) return;
+
+        currentGamma = event.gamma;
+        updateGammaDisplay(currentGamma);
+
+        if (waitingForChoice) {
+          checkGammaChoice(currentGamma);
+        }
+      });
+
+      sensorsStarted = true;
+      setStatus("Sensores iniciados. Puedes calibrar inclinando el móvil.");
+      vibrate([80, 50, 80]);
+    }
+
+    function updateGammaDisplay(gamma) {
+      gammaBig.textContent = formatNumber(gamma, 1);
+
+      const clamped = Math.max(-90, Math.min(90, gamma));
+      const percent = ((clamped + 90) / 180) * 100;
+      gammaNeedle.style.left = percent + "%";
+
+      if (gamma > GAMMA_A) {
+        gammaDecision.textContent = "Opción A detectada";
+        gammaDecision.style.color = "var(--good)";
+      } else if (gamma < GAMMA_B) {
+        gammaDecision.textContent = "Opción B detectada";
+        gammaDecision.style.color = "var(--bad)";
+      } else {
+        gammaDecision.textContent = "Zona neutra";
+        gammaDecision.style.color = "var(--warn)";
+      }
+    }
+
+    function checkGammaChoice(gamma) {
+      if (!waitingForChoice || speaking) return;
+
+      if (Math.abs(gamma) <= NEUTRAL_ZONE) {
+        neutralArmed = true;
+        setStatus("Esperando elección. Inclina a la derecha o a la izquierda.");
         return;
       }
 
-      statusDiv.textContent = "Voces encontradas: " + voices.length;
+      if (!neutralArmed) {
+        setStatus("Vuelve primero a zona neutra para evitar elegir sin querer.");
+        return;
+      }
 
-      const spanishVoices = voices.filter(v =>
-        v.lang && v.lang.toLowerCase().startsWith("es")
-      );
+      if (gamma > GAMMA_A) {
+        resolveChoice("A", "inclinación gamma > +10");
+      } else if (gamma < GAMMA_B) {
+        resolveChoice("B", "inclinación gamma < -10");
+      }
+    }
 
-      const otherVoices = voices.filter(v =>
-        !v.lang || !v.lang.toLowerCase().startsWith("es")
-      );
+    function speakOne(text) {
+      return new Promise((resolve) => {
+        speaking = true;
+        speechSynthesis.cancel();
 
-      const orderedVoices = [...spanishVoices, ...otherVoices];
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "es-ES";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
 
-      orderedVoices.forEach((voice, index) => {
-        const card = document.createElement("div");
-        card.className = "voice";
+        let finished = false;
 
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = index + 1 + ". " + voice.name;
+        function done() {
+          if (finished) return;
+          finished = true;
+          speaking = false;
+          resolve();
+        }
 
-        const details = document.createElement("div");
-        details.className = "details";
-        details.textContent =
-          "Idioma: " + voice.lang +
-          " | Local: " + voice.localService +
-          " | Predeterminada: " + voice.default;
+        utterance.onend = done;
+        utterance.onerror = done;
 
-        const button = document.createElement("button");
-        button.textContent = "Probar esta voz";
-        button.onclick = () => speakWithVoice(voice);
+        const words = text.trim().split(/\s+/).length;
+        const fallbackMs = Math.max(4000, words * 430);
 
-        card.appendChild(name);
-        card.appendChild(details);
-        card.appendChild(button);
+        setTimeout(done, fallbackMs);
 
-        voicesDiv.appendChild(card);
+        speechSynthesis.speak(utterance);
       });
     }
 
-    loadButton.addEventListener("click", loadVoices);
+    async function speakQueue(parts) {
+      for (const part of parts) {
+        if (!storyRunning) return;
+        storyBox.textContent = part;
+        await speakOne(part);
+        await sleep(350);
+      }
+    }
 
-    stopButton.addEventListener("click", () => {
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function waitForChoice() {
+      return new Promise((resolve) => {
+        waitingForChoice = true;
+        choiceResolver = resolve;
+
+        neutralArmed = currentGamma !== null && Math.abs(currentGamma) <= NEUTRAL_ZONE;
+
+        let remaining = CHOICE_TIMEOUT_SECONDS;
+        countdownValue.textContent = remaining + " s";
+
+        setStatus(
+          neutralArmed
+            ? "Esperando elección por inclinación."
+            : "Esperando elección. Vuelve primero a zona neutra."
+        );
+
+        countdownInterval = setInterval(() => {
+          remaining -= 1;
+          countdownValue.textContent = remaining + " s";
+        }, 1000);
+
+        choiceTimeout = setTimeout(() => {
+          const randomChoice = Math.random() < 0.5 ? "A" : "B";
+          resolveChoice(randomChoice, "azar por no elegir a tiempo");
+        }, CHOICE_TIMEOUT_SECONDS * 1000);
+      });
+    }
+
+    function resolveChoice(choice, source) {
+      if (!waitingForChoice) return;
+
+      waitingForChoice = false;
+
+      clearTimeout(choiceTimeout);
+      clearInterval(countdownInterval);
+
+      countdownValue.textContent = "---";
+      lastChoiceValue.textContent = choice + " (" + source + ")";
+
+      vibrate(choice === "A" ? [80, 40, 80] : [200]);
+
+      const resolver = choiceResolver;
+      choiceResolver = null;
+
+      if (resolver) {
+        resolver({ choice, source });
+      }
+    }
+
+    function applyEffects(effects) {
+      for (const key in effects) {
+        if (typeof effects[key] === "number") {
+          state[key] += effects[key];
+        } else {
+          state[key] = effects[key];
+        }
+      }
+
+      if (state.cordura < 0) state.cordura = 0;
+      updateVars();
+    }
+
+    const nodes = [
+      {
+        title: "I. La carta de sal",
+        paragraphs: () => [
+          "Llegas a Puerto Umbral cuando la tarde ya tiene color de hierro viejo. No figura en los mapas modernos, aunque todos los trenes costeros parecen reducir la velocidad al pasar cerca, como si las máquinas recordaran una estación que los hombres han decidido olvidar.",
+          "En el bolsillo llevas la última carta de tu tío Elías, farero jubilado, coleccionista de lenguas muertas y hombre demasiado sobrio para gastar bromas. La carta decía: ‘Si el faro vuelve a encenderse bajo la marea, no mires la luz. Ven antes de que el pueblo escuche la campana’.",
+          "El pueblo está vacío. Las casas tienen las puertas abiertas, las mesas puestas y los espejos cubiertos con paños negros. En la taberna encuentras dos rastros: un diario hinchado por la humedad junto a la chimenea, y unas pisadas recientes que bajan hacia la playa."
+        ],
+        choiceText: "Opción A: examinar el diario de tu tío. Opción B: seguir las pisadas hacia la playa.",
+        choices: {
+          A: {
+            feedback: "Abres el diario. Sus páginas huelen a moho, sal y tinta amarga. Entre frases temblorosas encuentras una advertencia: los símbolos no son escritura, sino cerraduras.",
+            effects: { diario: 1, cordura: 1 }
+          },
+          B: {
+            feedback: "Sigues las pisadas hasta la playa. La arena está fría y demasiado lisa. Al final del rastro encuentras una concha negra que late una vez contra tu palma antes de quedarse inmóvil.",
+            effects: { mapa: 1, cordura: -1 }
+          }
+        }
+      },
+      {
+        title: "II. La puerta del faro",
+        paragraphs: () => [
+          "El faro se alza sobre un islote unido a tierra por un camino de piedras. La marea debería haberlo cubierto hace horas, pero el agua permanece retirada, como un animal que aguarda una orden.",
+          state.diario > 0
+            ? "Gracias al diario reconoces varios signos grabados en los postes del camino. No son adornos marineros: son sellos de contención. Dos están rotos. Uno parece haber sido arañado desde el lado de dentro."
+            : "Los postes del camino muestran marcas curvas, espirales y pequeños ojos sin párpado. No puedes leerlos, pero tu cabeza duele al mirarlos demasiado tiempo.",
+          "La puerta del faro está entornada. En el recibidor encuentras un farol de aceite todavía tibio y, colgando de un clavo, una llave de bronce cubierta por una pátina verdosa. Solo tienes tiempo de coger una cosa antes de que algo golpee desde el piso superior."
+        ],
+        choiceText: "Opción A: coger el farol de aceite. Opción B: coger la llave de bronce.",
+        choices: {
+          A: {
+            feedback: "Tomas el farol. La llama prende con un chasquido azul, como si hubiese estado esperando tu mano.",
+            effects: { fuego: 1 }
+          },
+          B: {
+            feedback: "Tomas la llave. Está helada. Durante un instante, notas que no es la llave la que cabe en una cerradura, sino una cerradura la que se formará alrededor de ella.",
+            effects: { llave: 1 }
+          }
+        }
+      },
+      {
+        title: "III. La radio imposible",
+        paragraphs: () => [
+          "Subes por la escalera de caracol. Cada peldaño tiene una fecha grabada. Algunas pertenecen al siglo pasado. Otras, imposiblemente, pertenecen al año que viene.",
+          "En la sala de guardia hay una radio de válvulas. No está conectada a la corriente, pero murmura con una voz infantil: ‘No subas a la linterna. Él no está arriba. Está debajo. Siempre ha estado debajo’.",
+          state.fuego > 0
+            ? "La luz de tu farol hace retroceder la humedad de las paredes, revelando un plano del sótano pintado con hollín."
+            : "En la penumbra, apenas distingues un plano del sótano pintado con hollín. Algunas líneas se mueven cuando apartas la mirada."
+        ],
+        choiceText: "Opción A: obedecer a la voz de la radio y bajar al sótano. Opción B: desconfiar de la radio y copiar el plano antes de bajar.",
+        choices: {
+          A: {
+            feedback: "La voz ríe muy bajo cuando decides obedecerla. Tal vez sea gratitud. Tal vez hambre.",
+            effects: { confianza: 1, cordura: -1 }
+          },
+          B: {
+            feedback: "Copias el plano en el reverso de la carta de tu tío. Las líneas cambian dos veces mientras dibujas, pero consigues retener una ruta estable.",
+            effects: { mapa: 1 }
+          }
+        }
+      },
+      {
+        title: "IV. El pozo interior",
+        paragraphs: () => [
+          "Bajo la escalera principal encuentras una trampilla. No da a una bodega, sino a un pozo vertical tallado en una piedra que no pertenece a esta costa. El aire que sube desde abajo trae olor a algas, incienso y habitaciones cerradas durante siglos.",
+          state.llave > 0
+            ? "La llave de bronce vibra cerca de la trampilla. Cuando la acercas, tres cerrojos invisibles se abren en el aire con un sonido delicado, casi educado."
+            : "La trampilla se resiste, y tienes que forzarla con una barra oxidada. Algo se astilla abajo, como si hubieras roto un mecanismo que no entendías.",
+          "Una cuerda cuelga junto al pozo. Está gastada, pero aguanta. Desde las profundidades llega un canto coral, aunque cada voz parece cantar desde una época distinta."
+        ],
+        choiceText: "Opción A: descender deprisa antes de que el canto suba. Opción B: asegurar la cuerda y marcar un sello en el borde del pozo.",
+        choices: {
+          A: {
+            feedback: "Desciendes deprisa. A mitad de camino, algo roza tu tobillo con dedos largos y blandos. Llegas abajo, pero sangrando.",
+            effects: { heridas: 1 }
+          },
+          B: {
+            feedback: "Aseguras la cuerda y marcas un sello simple con sal y hollín. El canto se aleja un poco, como una marea obediente.",
+            effects: { sellos: 1 }
+          }
+        }
+      },
+      {
+        title: "V. La cámara de los espejos cubiertos",
+        paragraphs: () => [
+          "El pozo desemboca en una cámara circular. Hay siete espejos cubiertos por telas negras, una mesa de piedra y una maqueta del pueblo construida con huesos diminutos. Sobre el faro de la maqueta arde una llama verde.",
+          state.diario > 0
+            ? "Recuerdas una frase del diario: ‘No mires el reflejo completo. Busca el nombre partido entre las cosas que se niegan a reflejarse’. Obedeces, y las telas parecen respirar con decepción."
+            : "Algo en la cámara quiere que retires las telas. No como una orden, sino como un pensamiento que podría haber sido tuyo desde la infancia.",
+          "En la mesa hay una inscripción incompleta. También hay un martillo de hierro. Puedes intentar leer los signos, arriesgando tu mente, o romper uno de los espejos antes de que decidan mostrarte algo."
+        ],
+        choiceText: "Opción A: leer la inscripción incompleta. Opción B: romper un espejo con el martillo.",
+        choices: {
+          A: {
+            feedback: "Lees la inscripción. Una palabra se clava detrás de tus ojos: Uhl-Vareth. No sabes qué significa, pero sabes que algo muy antiguo acaba de girarse hacia ti.",
+            effects: { nombre: 1, cordura: -1 }
+          },
+          B: {
+            feedback: "Rompes un espejo. No se rompe hacia dentro, sino hacia fuera. Del otro lado cae agua negra, pero también se apaga uno de los signos de la cámara.",
+            effects: { sellos: 1, heridas: 1 }
+          }
+        }
+      },
+      {
+        title: "VI. La campana bajo el agua",
+        paragraphs: () => [
+          "Entonces suena la campana. No viene de la torre, sino del mar retirado. Cada golpe hace temblar la maqueta de huesos. En el pueblo, muy lejos, las ventanas comienzan a encenderse una por una.",
+          state.confianza > 0
+            ? "La radio vuelve a hablar desde algún lugar imposible: ‘Me dejaron aquí para imitar voces humanas. Pero he aprendido miedo. Si cierras la compuerta, tal vez yo también deje de soñar’. "
+            : "Una voz que imita a tu tío llama desde un corredor lateral. La imitación es casi perfecta, salvo porque pronuncia tu nombre con demasiadas sílabas.",
+          "Al fondo de la cámara hay una compuerta de hierro. Detrás, algo golpea con paciencia. En el corredor lateral, una figura pequeña solloza y pide ayuda."
+        ],
+        choiceText: "Opción A: seguir la voz que pide ayuda. Opción B: cerrar la compuerta de hierro.",
+        choices: {
+          A: {
+            feedback: "Sigues la voz. Encuentras una chaqueta infantil, seca y doblada, aunque el suelo está inundado. En el bolsillo hay un silbato de plata. Lo guardas sin saber por qué.",
+            effects: { compasion: 1, cordura: -1 }
+          },
+          B: {
+            feedback: "Cierras la compuerta. Durante unos segundos, el mundo entero parece empujar desde el otro lado. Luego el hierro se enfría y uno de los sellos vuelve a cerrarse.",
+            effects: { sellos: 1 }
+          }
+        }
+      },
+      {
+        title: "VII. La linterna que no alumbra",
+        paragraphs: () => [
+          "Regresas a la parte alta del faro. La linterna está encendida, pero no proyecta luz sobre el mar. Proyecta mar sobre el cielo. Por encima de las nubes se ve una ciudad sumergida, invertida, inmensa, esperando caer.",
+          state.nombre > 0
+            ? "El nombre Uhl-Vareth late en tu memoria. Comprendes que no es el nombre de una criatura, sino de una puerta. Decirlo mal la abre. Decirlo entero quizá la cierre."
+            : "No conoces el nombre de lo que despierta, pero sientes su atención como una presión en los dientes. Todas las sombras de la sala apuntan hacia ti.",
+          state.fuego > 0
+            ? "El farol arde con fuerza azul. Podrías usarlo para prender los papeles rituales y huir entre el humo."
+            : "Sin una llama fiable, solo te queda la maquinaria de la linterna, los sellos dañados y tu propia voz temblorosa."
+        ],
+        choiceText: "Opción A: intentar sellar la linterna pronunciando la fórmula. Opción B: destruir lo que puedas y huir del faro.",
+        choices: {
+          A: {
+            feedback: "Te acercas a la linterna y apoyas las manos sobre el metal helado. Las palabras esperan detrás de tu lengua.",
+            effects: { finalAction: "sellar" }
+          },
+          B: {
+            feedback: "Decides que hay conocimientos que no merecen ser completados. Buscas una salida mientras la ciudad del cielo empieza a descender.",
+            effects: { finalAction: "huir" }
+          }
+        }
+      }
+    ];
+
+    function getEnding() {
+      if (state.finalAction === "sellar") {
+        if ((state.nombre > 0 || state.diario > 0) && state.sellos >= 2 && (state.llave > 0 || state.mapa > 0) && state.cordura > 0) {
+          return {
+            title: "Final: El faro apagado",
+            paragraphs: [
+              "Pronuncias el nombre, pero no como lo quería la cosa que aguardaba detrás de la luz. Lo pronuncias como una cerradura que recuerda haber sido cerrada.",
+              "Los sellos responden. La llave invisible gira. El mar cae de golpe sobre el camino de piedras y el faro se apaga con un suspiro humano. Cuando despiertas, estás en la playa, con el diario reducido a sal entre los dedos.",
+              "Puerto Umbral vuelve a aparecer en los mapas durante tres días. Después desaparece otra vez. Pero ninguna campana vuelve a sonar bajo el agua. Has ganado, aunque cada noche sueñas con una ciudad que te da las gracias desde el fondo del cielo."
+            ]
+          };
+        }
+
+        if ((state.nombre > 0 || state.diario > 0) && state.sellos >= 1) {
+          return {
+            title: "Final: Victoria incompleta",
+            paragraphs: [
+              "Dices la fórmula como puedes. No es perfecta. Algunas sílabas se rompen en tu boca y otras no parecen tuyas.",
+              "La linterna se apaga, pero algo queda al otro lado, empujando suavemente, aprendiendo tu voz. El faro no cae. El pueblo no despierta. El mundo continúa.",
+              "Te encuentran al amanecer sentado en la escalera, vivo, con el pelo blanco y las manos cubiertas de signos que nadie consigue lavar. Has cerrado la puerta, sí, pero ahora la puerta sabe tu nombre."
+            ]
+          };
+        }
+
+        return {
+          title: "Final: El nuevo farero",
+          paragraphs: [
+            "Intentas sellar la linterna sin entender sus reglas. La fórmula se equivoca dentro de ti. La luz se abre como un ojo.",
+            "Durante un instante ves todos los mares de todos los planetas muertos, y en cada orilla hay un faro idéntico a este. En cada faro hay alguien pronunciando tu nombre.",
+            "A la mañana siguiente, Puerto Umbral sigue vacío. En la torre, una nueva silueta vigila el horizonte. Cuando los barcos pasan cerca, oyen por la radio una voz amable que les recomienda acercarse a la luz."
+          ]
+        };
+      }
+
+      if (state.finalAction === "huir") {
+        if (state.fuego > 0 && state.llave > 0 && state.mapa > 0) {
+          return {
+            title: "Final: Huida entre llamas",
+            paragraphs: [
+              "Prendes los papeles rituales con el farol y usas la llave para abrir una salida de servicio marcada en el plano. El faro arde hacia dentro, con llamas azules que no dan calor.",
+              "Corres por el camino de piedras mientras la marea vuelve como una pared. A tu espalda, la linterna grita una palabra que casi entiendes. Casi.",
+              "Sobrevives. Al mes siguiente lees que ha aparecido una nueva isla a veinte kilómetros de la costa. Nadie vive allí todavía, pero por las noches emite una luz regular, paciente, como si estuviera aprendiendo a respirar."
+            ]
+          };
+        }
+
+        if (state.compasion > 0 && state.confianza > 0) {
+          return {
+            title: "Final: La voz que aprendió miedo",
+            paragraphs: [
+              "Huyes sin saber el camino. Entonces suena el silbato de plata en tu bolsillo, aunque no lo has tocado. La radio imposible responde con instrucciones entrecortadas.",
+              "Obedeces a la voz. Giras donde no hay pasillo, bajas una escalera que no estaba, atraviesas una puerta dibujada con humedad. Algo enorme se enfurece detrás de ti, no porque escapes, sino porque alguien te está ayudando.",
+              "Sales al amanecer. El faro queda en pie, apagado por ahora. Durante años recibirás, en radios rotas y teléfonos sin batería, una voz infantil que solo dice: ‘Sigo soñando, pero menos’. Has sobrevivido, aunque no has terminado la historia."
+            ]
+          };
+        }
+
+        return {
+          title: "Final: La marea hacia arriba",
+          paragraphs: [
+            "Huyes, pero el faro ya no tiene las mismas escaleras. Cada puerta devuelve a una sala más húmeda, más baja, más cercana al fondo del mar.",
+            "La marea no entra desde fuera. Sube desde los espejos, desde las grietas, desde tu propia respiración. Cuando intentas gritar, expulsas agua negra.",
+            "Días después, un tren costero reduce la velocidad cerca de un pueblo que no aparece en los mapas. Algunos pasajeros ven luces en un faro abandonado. Otros aseguran que, por un segundo, el cielo parecía estar debajo del mar."
+          ]
+        };
+      }
+
+      return {
+        title: "Final: Silencio",
+        paragraphs: [
+          "La historia se interrumpe. Algo ha quedado sin decidir en la oscuridad.",
+          "Quizá sea mejor así."
+        ]
+      };
+    }
+
+    async function runNode(index) {
+      const node = nodes[index];
+      chapterValue.textContent = node.title;
+      setStatus("Leyendo: " + node.title);
+
+      const paragraphs = node.paragraphs();
+
+      await speakQueue(paragraphs);
+
+      if (!storyRunning) return;
+
+      const choiceIntro =
+        node.choiceText +
+        " Tienes veinte segundos para elegir. Inclina a la derecha para opción A. Inclina a la izquierda para opción B.";
+
+      storyBox.textContent = choiceIntro;
+      await speakOne(choiceIntro);
+
+      if (!storyRunning) return;
+
+      const result = await waitForChoice();
+
+      if (!storyRunning) return;
+
+      const chosen = node.choices[result.choice];
+
+      applyEffects(chosen.effects);
+
+      const feedback =
+        result.source === "azar por no elegir a tiempo"
+          ? "No has elegido a tiempo. El azar decide la opción " + result.choice + ". " + chosen.feedback
+          : "Has elegido la opción " + result.choice + ". " + chosen.feedback;
+
+      setStatus("Elegida opción " + result.choice + ".");
+      await speakQueue([feedback]);
+    }
+
+    async function startStory() {
+      if (storyRunning) return;
+
+      try {
+        if (!sensorsStarted) {
+          await startSensors();
+        }
+
+        await requestWakeLock();
+
+        resetState();
+
+        storyRunning = true;
+        storyBox.textContent = "";
+        lastChoiceValue.textContent = "---";
+        countdownValue.textContent = "---";
+
+        setStatus("Iniciando historia.");
+        await speakOne("Comienza El Faro Bajo la Marea. Mantén el móvil en zona neutra durante las pausas. Inclina a la derecha para opción A, o a la izquierda para opción B.");
+
+        for (let i = 0; i < nodes.length; i++) {
+          if (!storyRunning) return;
+          await runNode(i);
+        }
+
+        if (!storyRunning) return;
+
+        const ending = getEnding();
+        chapterValue.textContent = ending.title;
+        setStatus(ending.title);
+
+        await speakQueue([
+          ending.title,
+          ...ending.paragraphs,
+          "Fin."
+        ]);
+
+        setStatus("Historia terminada.");
+        storyRunning = false;
+
+      } catch (error) {
+        storyRunning = false;
+        setStatus("Error: " + error.message);
+        await speakOne("Ha ocurrido un error iniciando la historia.");
+      }
+    }
+
+    function stopEverything() {
+      storyRunning = false;
+      speaking = false;
+      waitingForChoice = false;
+      neutralArmed = false;
+
+      clearTimeout(choiceTimeout);
+      clearInterval(countdownInterval);
+
       speechSynthesis.cancel();
+
+      countdownValue.textContent = "---";
+      chapterValue.textContent = "---";
+      lastChoiceValue.textContent = "---";
+
+      setStatus("Detenido. Puedes iniciar de nuevo.");
+      storyBox.textContent = "Historia detenida.";
+    }
+
+    startSensorsButton.addEventListener("click", async () => {
+      try {
+        await startSensors();
+      } catch (error) {
+        setStatus("Error iniciando sensores: " + error.message);
+      }
     });
 
-    speechSynthesis.onvoiceschanged = loadVoices;
+    speakButton.addEventListener("click", () => {
+      speakOne("Prueba de voz. Si escuchas esto, la síntesis de voz funciona correctamente.");
+    });
 
-    setTimeout(loadVoices, 500);
-    setTimeout(loadVoices, 1500);
-    setTimeout(loadVoices, 3000);
+    startStoryButton.addEventListener("click", startStory);
+
+    stopButton.addEventListener("click", stopEverything);
+
+    manualAButton.addEventListener("click", () => {
+      resolveChoice("A", "botón manual");
+    });
+
+    manualBButton.addEventListener("click", () => {
+      resolveChoice("B", "botón manual");
+    });
   </script>
 </body>
 </html>
