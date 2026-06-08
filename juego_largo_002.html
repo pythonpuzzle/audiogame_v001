@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>La Frecuencia del Aplauso</title>
+
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #111;
+      --panel2: #181818;
+      --text: #f2f2f2;
+      --muted: #aaa;
+      --good: #8cff8c;
+      --warn: #ffd36b;
+      --bad: #ff7d7d;
+      --line: #333;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      min-height: 100%;
+    }
+
+    body {
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      margin: 0 0 8px 0;
+    }
+
+    h2 {
+      font-size: 1.05rem;
+      margin: 0 0 10px 0;
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    button {
+      width: 100%;
+      font-size: 1.05rem;
+      padding: 14px;
+      border: 0;
+      border-radius: 10px;
+      margin: 7px 0;
+      background: #fff;
+      color: #000;
+      font-weight: 700;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .mainButton {
+      background: #dfffdc;
+    }
+
+    .dangerButton {
+      background: #ffdddd;
+    }
+
+    .choiceButton {
+      background: #dbe8ff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+      padding-bottom: 40px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .highlight {
+      background: var(--panel2);
+      border-color: #777;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid #222;
+      padding: 7px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .label {
+      color: var(--muted);
+    }
+
+    .value {
+      color: var(--good);
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .bigValue {
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--warn);
+      text-align: center;
+      margin: 10px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .decision {
+      font-size: 1.15rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--good);
+      margin: 10px 0;
+      min-height: 1.6rem;
+    }
+
+    .gammaMeter {
+      position: relative;
+      height: 34px;
+      background: #222;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 6px 0;
+    }
+
+    .gammaZoneLeft {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 38.8%;
+      background: rgba(255, 125, 125, 0.22);
+    }
+
+    .gammaZoneRight {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 38.8%;
+      background: rgba(140, 255, 140, 0.22);
+    }
+
+    .gammaCenter {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #777;
+    }
+
+    .gammaNeedle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      border-radius: 999px;
+      background: #fff;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .statusBox {
+      background: #050505;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      color: var(--warn);
+      min-height: 2.4rem;
+      font-weight: 700;
+    }
+
+    .storyBox {
+      background: #050505;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 12px;
+      max-height: 360px;
+      overflow-y: auto;
+      color: #ddd;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .small {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    code {
+      color: var(--good);
+    }
+  </style>
+</head>
+
+<body>
+  <h1>La Frecuencia del Aplauso</h1>
+
+  <p>
+    Audioaventura universitaria lovecraftiana. Inclina el móvil hasta
+    <strong>gamma Y &gt; +10</strong> para elegir A, o hasta
+    <strong>gamma Y &lt; -10</strong> para elegir B.
+    Si no eliges en 20 segundos, el azar decidirá.
+  </p>
+
+  <button id="startSensorsButton">1. Iniciar sensores</button>
+  <button id="speakButton">2. Probar voz</button>
+  <button id="startStoryButton" class="mainButton">3. Iniciar historia</button>
+  <button id="stopButton" class="dangerButton">Parar / reiniciar</button>
+
+  <div class="grid">
+
+    <section class="card highlight">
+      <h2>Control por inclinación gamma Y</h2>
+
+      <div class="bigValue" id="gammaBig">---</div>
+
+      <div class="gammaMeter">
+        <div class="gammaZoneLeft"></div>
+        <div class="gammaZoneRight"></div>
+        <div class="gammaCenter"></div>
+        <div class="gammaNeedle" id="gammaNeedle"></div>
+      </div>
+
+      <div class="decision" id="gammaDecision">Zona neutra</div>
+
+      <div class="row">
+        <span class="label">Opción A</span>
+        <span class="value">gamma &gt; +10</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Opción B</span>
+        <span class="value">gamma &lt; -10</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Estado de la historia</h2>
+
+      <div class="statusBox" id="statusBox">
+        Pulsa iniciar sensores y después iniciar historia.
+      </div>
+
+      <div class="row">
+        <span class="label">Escena</span>
+        <span class="value" id="chapterValue">---</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Cuenta atrás</span>
+        <span class="value" id="countdownValue">---</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Última elección</span>
+        <span class="value" id="lastChoiceValue">---</span>
+      </div>
+
+      <button id="manualAButton" class="choiceButton">Elegir A manualmente</button>
+      <button id="manualBButton" class="choiceButton">Elegir B manualmente</button>
+
+      <p class="small">
+        Los botones A/B son solo de emergencia para probar desde pantalla.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Texto actual</h2>
+      <div class="storyBox" id="storyBox">
+        Aquí aparecerá el texto leído por la voz.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Variables internas</h2>
+
+      <div class="row">
+        <span class="label">Cordura</span>
+        <span class="value" id="varCordura">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Heridas</span>
+        <span class="value" id="varHeridas">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Pruebas contra Vance</span>
+        <span class="value" id="varPruebas">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Confianza de Julian</span>
+        <span class="value" id="varJulian">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Esquema megafonía</span>
+        <span class="value" id="varEsquema">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Acceso al estadio</span>
+        <span class="value" id="varAcceso">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Frecuencia inversa</span>
+        <span class="value" id="varFrecuencia">0</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Sabotaje</span>
+        <span class="value" id="varSabotaje">0</span>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const startSensorsButton = $("startSensorsButton");
+    const speakButton = $("speakButton");
+    const startStoryButton = $("startStoryButton");
+    const stopButton = $("stopButton");
+    const manualAButton = $("manualAButton");
+    const manualBButton = $("manualBButton");
+
+    const gammaBig = $("gammaBig");
+    const gammaDecision = $("gammaDecision");
+    const gammaNeedle = $("gammaNeedle");
+
+    const statusBox = $("statusBox");
+    const chapterValue = $("chapterValue");
+    const countdownValue = $("countdownValue");
+    const lastChoiceValue = $("lastChoiceValue");
+    const storyBox = $("storyBox");
+
+    const varCordura = $("varCordura");
+    const varHeridas = $("varHeridas");
+    const varPruebas = $("varPruebas");
+    const varJulian = $("varJulian");
+    const varEsquema = $("varEsquema");
+    const varAcceso = $("varAcceso");
+    const varFrecuencia = $("varFrecuencia");
+    const varSabotaje = $("varSabotaje");
+
+    const GAMMA_A = 10;
+    const GAMMA_B = -10;
+    const NEUTRAL_ZONE = 6;
+    const CHOICE_TIMEOUT_SECONDS = 20;
+
+    let sensorsStarted = false;
+    let currentGamma = null;
+
+    let storyRunning = false;
+    let speaking = false;
+    let waitingForChoice = false;
+    let neutralArmed = false;
+
+    let choiceResolver = null;
+    let choiceTimeout = null;
+    let countdownInterval = null;
+    let wakeLock = null;
+
+    let state = {};
+
+    function resetState() {
+      state = {
+        cordura: 5,
+        heridas: 0,
+        pruebas: 0,
+        julian: 0,
+        esquema: 0,
+        acceso: 0,
+        frecuencia: 0,
+        sabotaje: 0,
+
+        tarjetaVance: 0,
+        enfermeria: 0,
+        sotanos: 0,
+        periodista: 0,
+        gafas: 0,
+        conserje: 0,
+        amuleto: 0,
+        tonic: 0,
+        bibliotecaria: 0,
+        agitadores: 0,
+        debate: 0,
+        observatorio: 0,
+        mascota: 0,
+        artefacto: 0,
+        cabina: 0,
+        sotanoEstadio: 0,
+        publicoCalmado: 0,
+        vanceNeutralizado: 0,
+        finalAction: ""
+      };
+      updateVars();
+    }
+
+    resetState();
+
+    function updateVars() {
+      varCordura.textContent = state.cordura;
+      varHeridas.textContent = state.heridas;
+      varPruebas.textContent = state.pruebas;
+      varJulian.textContent = state.julian;
+      varEsquema.textContent = state.esquema;
+      varAcceso.textContent = state.acceso;
+      varFrecuencia.textContent = state.frecuencia;
+      varSabotaje.textContent = state.sabotaje;
+    }
+
+    function setStatus(text) {
+      statusBox.textContent = text;
+    }
+
+    function formatNumber(n, decimals = 1) {
+      if (n === null || n === undefined || Number.isNaN(n)) return "---";
+      return Number(n).toFixed(decimals);
+    }
+
+    function vibrate(pattern) {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(pattern);
+      }
+    }
+
+    async function requestWakeLock() {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await navigator.wakeLock.request("screen");
+        }
+      } catch (e) {}
+    }
+
+    async function requestMotionPermissionIfNeeded() {
+      if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission === "function"
+      ) {
+        const result = await DeviceOrientationEvent.requestPermission();
+        if (result !== "granted") {
+          throw new Error("Permiso de orientación denegado.");
+        }
+      }
+    }
+
+    async function startSensors() {
+      if (sensorsStarted) return;
+
+      await requestMotionPermissionIfNeeded();
+
+      window.addEventListener("deviceorientation", (event) => {
+        if (event.gamma === null || event.gamma === undefined) return;
+
+        currentGamma = event.gamma;
+        updateGammaDisplay(currentGamma);
+
+        if (waitingForChoice) {
+          checkGammaChoice(currentGamma);
+        }
+      });
+
+      sensorsStarted = true;
+      setStatus("Sensores iniciados. Puedes calibrar inclinando el móvil.");
+      vibrate([80, 50, 80]);
+    }
+
+    function updateGammaDisplay(gamma) {
+      gammaBig.textContent = formatNumber(gamma, 1);
+
+      const clamped = Math.max(-90, Math.min(90, gamma));
+      const percent = ((clamped + 90) / 180) * 100;
+      gammaNeedle.style.left = percent + "%";
+
+      if (gamma > GAMMA_A) {
+        gammaDecision.textContent = "Opción A detectada";
+        gammaDecision.style.color = "var(--good)";
+      } else if (gamma < GAMMA_B) {
+        gammaDecision.textContent = "Opción B detectada";
+        gammaDecision.style.color = "var(--bad)";
+      } else {
+        gammaDecision.textContent = "Zona neutra";
+        gammaDecision.style.color = "var(--warn)";
+      }
+    }
+
+    function checkGammaChoice(gamma) {
+      if (!waitingForChoice || speaking) return;
+
+      if (Math.abs(gamma) <= NEUTRAL_ZONE) {
+        neutralArmed = true;
+        setStatus("Esperando elección. Inclina a la derecha o a la izquierda.");
+        return;
+      }
+
+      if (!neutralArmed) {
+        setStatus("Vuelve primero a zona neutra para evitar elegir sin querer.");
+        return;
+      }
+
+      if (gamma > GAMMA_A) {
+        resolveChoice("A", "inclinación gamma > +10");
+      } else if (gamma < GAMMA_B) {
+        resolveChoice("B", "inclinación gamma < -10");
+      }
+    }
+
+    function speakOne(text) {
+      return new Promise((resolve) => {
+        speaking = true;
+        speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "es-ES";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        let finished = false;
+
+        function done() {
+          if (finished) return;
+          finished = true;
+          speaking = false;
+          resolve();
+        }
+
+        utterance.onend = done;
+        utterance.onerror = done;
+
+        const words = text.trim().split(/\s+/).length;
+        const fallbackMs = Math.max(3000, words * 430);
+        setTimeout(done, fallbackMs);
+
+        speechSynthesis.speak(utterance);
+      });
+    }
+
+    async function speakQueue(parts) {
+      for (const part of parts) {
+        if (!storyRunning) return;
+        storyBox.textContent = part;
+        await speakOne(part);
+        await sleep(320);
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function waitForChoice() {
+      return new Promise((resolve) => {
+        waitingForChoice = true;
+        choiceResolver = resolve;
+
+        neutralArmed = currentGamma !== null && Math.abs(currentGamma) <= NEUTRAL_ZONE;
+
+        let remaining = CHOICE_TIMEOUT_SECONDS;
+        countdownValue.textContent = remaining + " s";
+
+        setStatus(
+          neutralArmed
+            ? "Esperando elección por inclinación."
+            : "Esperando elección. Vuelve primero a zona neutra."
+        );
+
+        countdownInterval = setInterval(() => {
+          remaining -= 1;
+          countdownValue.textContent = remaining + " s";
+        }, 1000);
+
+        choiceTimeout = setTimeout(() => {
+          const randomChoice = Math.random() < 0.5 ? "A" : "B";
+          resolveChoice(randomChoice, "azar por no elegir a tiempo");
+        }, CHOICE_TIMEOUT_SECONDS * 1000);
+      });
+    }
+
+    function resolveChoice(choice, source) {
+      if (!waitingForChoice) return;
+
+      waitingForChoice = false;
+
+      clearTimeout(choiceTimeout);
+      clearInterval(countdownInterval);
+
+      countdownValue.textContent = "---";
+      lastChoiceValue.textContent = choice + " (" + source + ")";
+
+      vibrate(choice === "A" ? [80, 40, 80] : [200]);
+
+      const resolver = choiceResolver;
+      choiceResolver = null;
+
+      if (resolver) {
+        resolver({ choice, source });
+      }
+    }
+
+    function applyEffects(effects) {
+      for (const key in effects) {
+        if (typeof effects[key] === "number") {
+          state[key] += effects[key];
+        } else {
+          state[key] = effects[key];
+        }
+      }
+
+      if (state.cordura < 0) state.cordura = 0;
+      if (state.heridas < 0) state.heridas = 0;
+
+      updateVars();
+    }
+
+    const nodes = [
+      {
+        title: "I. El aula magna",
+        paragraphs: () => [
+          `El primer día empieza con lluvia fina sobre los tejados de Miskatonic. Desde tu asiento en el aula magna ves cómo las gotas dibujan líneas oblicuas sobre las vidrieras, como pentagramas torcidos. La sala está llena de estudiantes que intentan aparentar calma antes del examen excluyente de Historia Antigua, el filtro cruel que decide becas, matrículas y futuros brillantes.`,
+          `Tu compañero de cuarto, Julian Harrow, se sienta dos filas por delante. Normalmente llega tarde, despeinado y con café en la corbata. Hoy está impecable. Demasiado quieto. Su pluma estilográfica no escribe: presiona el papel con pequeños golpes rítmicos, siempre cuatro, pausa, cinco, pausa, cuatro. Te das cuenta de que varios estudiantes respiran siguiendo el mismo patrón.`,
+          `Cuando reparten el examen, el aire se vuelve denso. Las preguntas no son difíciles, pero parecen formuladas para provocar miedo. “Describa las ceremonias de transmisión coral en las culturas prehumanas del valle del Miskatonic”. Nadie protesta. Todos escriben. Julian, en cambio, empieza a tallar líneas en el pupitre con la punta de la pluma hasta que el metal se rompe. Después continúa con las uñas.`
+        ],
+        choiceText: `Opción A: levantarte y ayudar a Julian antes de que lo saquen del aula. Opción B: registrar discretamente las hojas que Julian deja caer al suelo.`,
+        choices: {
+          A: {
+            feedback: `Te levantas, aunque el profesor te amenaza con anular el examen. Julian te mira sin reconocerte y susurra: “La nota perfecta resuena si todos fallamos a la vez”. Cuando los bedeles lo arrastran hacia la enfermería, te agarra la muñeca con una fuerza febril. Durante un segundo, parece volver en sí y dice tu nombre.`,
+            effects: { julian: 1, cordura: -1 }
+          },
+          B: {
+            feedback: `Mientras todos miran a Julian, recoges una hoja cubierta de espirales geométricas. Entre los papeles encuentras una tarjeta de citas: “Dr. Silas Vance, Fisiología Comparada, despacho 314”. En el reverso hay una frase escrita por Julian: “No es música. Es obediencia con ritmo”.`,
+            effects: { tarjetaVance: 1, pruebas: 1 }
+          }
+        }
+      },
+      {
+        title: "II. La tarjeta del Dr. Vance",
+        paragraphs: () => [
+          `El examen continúa como si nada hubiese ocurrido. Esa es la primera señal de que algo está verdaderamente mal. Nadie pregunta por Julian. Nadie abandona el aula. Un estudiante del fondo sangra por la nariz y sigue escribiendo. La tensión se acumula en la bóveda del aula como electricidad antes de una tormenta.`,
+          state.tarjetaVance > 0
+            ? `La tarjeta del Dr. Vance te quema en el bolsillo. Recuerdas haber visto su nombre en carteles de conferencias sobre fisiología de masas, reflejos condicionados y respuesta emocional colectiva. Temas respetables, si uno no piensa demasiado en las palabras “masas” y “colectiva”.`
+            : `La marca de los dedos de Julian sigue roja en tu muñeca. Tienes la impresión absurda de que late a un ritmo distinto del corazón, como si alguien hubiese dejado allí un pequeño metrónomo bajo la piel.`,
+          `Al salir, el pasillo huele a tinta, sudor y ozono. Dos caminos se abren ante ti: la enfermería, donde se han llevado a Julian; y el tablón de anuncios, donde alguien acaba de clavar un panfleto convocando una manifestación inmediata contra el rectorado.`
+        ],
+        choiceText: `Opción A: ir directamente a la enfermería para buscar a Julian. Opción B: leer el panfleto y seguir a los estudiantes que van hacia el rectorado.`,
+        choices: {
+          A: {
+            feedback: `Corres hacia la enfermería. La enfermera no está en su puesto. En una camilla encuentras una sábana arrugada, uñas rotas y un fluido transparente que se estira en hilos pegajosos. Huele a ozono. En el suelo hay huellas que no van hacia la puerta, sino hacia una rejilla de ventilación arrancada.`,
+            effects: { enfermeria: 1, pruebas: 1, cordura: -1 }
+          },
+          B: {
+            feedback: `Sigues a la multitud hacia el rectorado. El panfleto denuncia la expulsión de varios alumnos por “inestabilidad emocional incompatible con el prestigio de Miskatonic”. Nadie conoce a los expulsados, pero todos están furiosos. Demasiado furiosos. Como si la ira hubiese sido servida caliente en vasos de papel.`,
+            effects: { agitadores: 1, cordura: -1 }
+          }
+        }
+      },
+      {
+        title: "III. La manifestación",
+        paragraphs: () => [
+          `A media tarde, el campus entero vibra. Cientos de estudiantes golpean las puertas del rectorado. Los cánticos empiezan como consignas políticas y terminan convertidos en algo más simple: sílabas repetidas, golpes de palmas, respiraciones sincronizadas. El sonido te aprieta el cráneo desde dentro.`,
+          `Un joven con chaqueta demasiado grande reparte megáfonos. Dice llamarse Lionel y asegura que la revolución necesita volumen. A su lado, una chica de vestido negro lo mira con desprecio nihilista, y Lionel se esfuerza en parecer peligroso. No sabe que varias botellas que ha robado del laboratorio tienen etiquetas de advertencia química.`,
+          `Entre la multitud aparece un reportero del periódico universitario, Peter Wicks, con una libreta empapada. Te apunta con el lápiz y pregunta si eres mensajero de la mafia de Arkham. Está convencido de que la manifestación oculta una red de contrabando de alcohol. Es ridículo, pero sus ojos son atentos. Ha visto cosas que no entiende.`
+        ],
+        choiceText: `Opción A: hablar con Lionel y examinar los megáfonos robados. Opción B: aceptar que el periodista Peter te siga y te cuente lo que ha visto.`,
+        choices: {
+          A: {
+            feedback: `Te acercas a Lionel. Descubres que los megáfonos tienen pequeñas placas de cobre soldadas al interior, demasiado delicadas para haber sido añadidas por estudiantes. Lionel solo quería impresionar a la chica nihilista. Cuando le dices que deje de usarlos, se ofende, pero tira dos al césped.`,
+            effects: { pruebas: 1, sabotaje: 1, agitadores: 1 }
+          },
+          B: {
+            feedback: `Peter se pega a ti como una sombra habladora. Cree que todo se relaciona con alcohol ilegal, apuestas universitarias y un decano corrupto. Aun así, te muestra una fotografía: el Dr. Vance entregando sobres a tres agitadores antes de la manifestación. En el fondo de la foto, Julian mira desde una ventana del edificio de ciencias.`,
+            effects: { periodista: 1, pruebas: 1 }
+          }
+        }
+      },
+      {
+        title: "IV. Biblioteca Orne",
+        paragraphs: () => [
+          `La manifestación acaba cuando se rompen las primeras ventanas. No por la violencia, sino porque una campana universitaria suena tres veces sin que nadie la toque. La multitud se dispersa con expresión avergonzada, como si despertara de un sueño compartido y no recordase quién gritó primero.`,
+          `Decides buscar un lugar donde pensar. La Biblioteca Orne parece segura por puro aburrimiento administrativo. Al entrar, una asistente de bibliotecaria te intercepta con la precisión de un depredador académico. La señorita Keene te informa de que tienes un libro de poemas con tres días de retraso y que la expulsión es una consecuencia perfectamente razonable.`,
+          `En una mesa cercana, dos miembros del club de debate discuten por un trofeo. Sus frases son tan perfectas que resultan dolorosas. Cada argumento encaja en el siguiente con una lógica inhumana. Una estudiante que los escucha demasiado tiempo se tapa los ojos y empieza a llorar sangre clara. En la sección restringida, ves un estuche abierto con unas gafas experimentales olvidadas.`
+        ],
+        choiceText: `Opción A: calmar a la bibliotecaria y pedir acceso a la sección restringida. Opción B: coger las gafas experimentales antes de que alguien las reclame.`,
+        choices: {
+          A: {
+            feedback: `Devuelves el libro de poemas, pagas una multa absurda y permites que la señorita Keene te humille durante tres minutos. A cambio, por error burocrático o por puro sadismo, te deja consultar el registro de préstamos del Dr. Vance. Ha retirado libros sobre acústica ritual, fisiología de multitudes y geometría coral.`,
+            effects: { bibliotecaria: 1, pruebas: 1, frecuencia: 1 }
+          },
+          B: {
+            feedback: `Te pones las gafas. El campus visible no cambia, pero aparece otro campus encima: los árboles tienen filamentos transparentes que suben al cielo; algunos estudiantes proyectan sombras que caminan en dirección contraria; y sobre el edificio de Fisiología cuelga una red de líneas tensas como cuerdas de violín.`,
+            effects: { gafas: 1, cordura: -1 }
+          }
+        }
+      },
+      {
+        title: "V. El edificio de ciencias",
+        paragraphs: () => [
+          `Anochece cuando llegas al edificio de ciencias. La fachada parece normal salvo por un detalle: varias ventanas tiemblan al mismo tiempo, no por el viento sino por una vibración interna. En la entrada, el viejo conserje Abner pasa una fregona por el mismo trozo de suelo una y otra vez.`,
+          `Abner no parece sorprendido de verte. Señala una mancha de humedad en el zócalo. Dice que cada noche cambia de forma, y que últimamente le pide ratas vivas. No lo dice como quien está loco, sino como quien se queja de una gotera. La mancha, al mirarla de reojo, parece efectivamente adoptar la silueta de una oreja.`,
+          state.gafas > 0
+            ? `Con las gafas experimentales, ves que la mancha no está sobre la pared: es una abertura minúscula, una ampolla en la realidad. De ella salen filamentos que atraviesan el suelo en dirección al despacho del Dr. Vance.`
+            : `Sin las gafas, solo notas una presión en los tímpanos, como cuando un tren entra en un túnel. El ascensor no funciona, pero la escalera de servicio baja hacia los sótanos y sube hasta los despachos.`
+        ],
+        choiceText: `Opción A: ayudar al conserje con la mancha para ganarte su confianza. Opción B: colarte directamente hacia el despacho del Dr. Vance.`,
+        choices: {
+          A: {
+            feedback: `Ayudas a Abner a rodear la mancha con sal de limpieza y serrín. La mancha se contrae, ofendida. Abner, agradecido, te da una llave maestra vieja y te advierte que el sótano del estadio y el edificio de ciencias comparten túneles de mantenimiento desde la guerra.`,
+            effects: { conserje: 1, acceso: 1, cordura: 1 }
+          },
+          B: {
+            feedback: `Subes por la escalera de servicio. En el segundo piso oyes una voz de profesor recitando números en un aula vacía. No te detienes. Cuando llegas al tercer piso, encuentras la puerta del despacho de Vance cerrada con una cerradura nueva y marcas de uñas alrededor del picaporte.`,
+            effects: { pruebas: 1, heridas: 1 }
+          }
+        }
+      },
+      {
+        title: "VI. El despacho 314",
+        paragraphs: () => [
+          `El despacho del Dr. Silas Vance huele a cuero, formol y café frío. Las paredes están cubiertas de diagramas del cerebro humano superpuestos sobre planos del campus. En cada plano hay tres círculos rojos: el aula magna, el rectorado y la casa de la fraternidad Delta Nu. Bajo ellos, una ecuación escrita a mano: estrés, ira, euforia.`,
+          `En una vitrina hay frascos etiquetados como “afinadores”. Los del aula magna contienen restos de polvo blanco; los de la manifestación, una solución ambarina; los de Delta Nu, ampollas azuladas marcadas como “euforizante armónico”. En el escritorio encuentras una carta dirigida al entrenador del equipo de fútbol.`,
+          `El documento principal se titula: “Resonancia psíquica de poblaciones jóvenes bajo emoción sincronizada”. En los márgenes, Vance ha escrito una frase que no parece académica: “El Nexo no abre puertas. Espera que las puertas aprendan a aplaudir”.`
+        ],
+        choiceText: `Opción A: leer los papeles hasta entender el mecanismo de la frecuencia. Opción B: robar ampollas, cartas y pruebas antes de que Vance regrese.`,
+        choices: {
+          A: {
+            feedback: `Lees hasta que las palabras empiezan a vibrar. Comprendes lo esencial: Vance no invoca con símbolos, sino con coincidencias emocionales. Si miles de personas sienten lo mismo al mismo tiempo, su mente colectiva se convierte en una membrana. Una frecuencia inversa podría arrugar esa membrana y cerrar la brecha.`,
+            effects: { frecuencia: 2, pruebas: 1, cordura: -1 }
+          },
+          B: {
+            feedback: `Guardas lo que puedes: ampollas, cartas, fotografías, una bobina de cobre y un plano parcial del estadio. No entiendes todo, pero sabes que bastaría para acusar a Vance si alguien cuerdo estuviera dispuesto a escucharte antes del partido.`,
+            effects: { pruebas: 3, esquema: 1 }
+          }
+        }
+      },
+      {
+        title: "VII. El amuleto del aprobado fácil",
+        paragraphs: () => [
+          `Al salir del despacho casi tropiezas con un estudiante de primer año sentado en el rellano. Se llama Martin y está llorando de felicidad. Ha aprobado el examen con la nota máxima. En la mano sostiene un amuleto de hueso tallado que susurra respuestas en una voz diminuta, como un profesor encerrado en una muela.`,
+          `Martin te enseña el pie con una mezcla de orgullo y terror. Le falta un dedo. Dice que el amuleto solo pide “pequeñas correcciones corporales” por cada sobresaliente. Mientras habla, el hueso murmura respuestas a preguntas que nadie ha formulado todavía. Entre ellas reconoces una: “La frecuencia será amplificada en el estadio”.`,
+          `Podrías quitarle el amuleto para estudiar sus murmullos, o convencerlo de que lo destruya antes de que siga pagando por notas perfectas. Al fondo del pasillo, la voz del Dr. Vance se aproxima conversando con alguien. No tienes mucho tiempo.`
+        ],
+        choiceText: `Opción A: quedarte el amuleto para extraer información. Opción B: destruirlo y sacar a Martin del edificio.`,
+        choices: {
+          A: {
+            feedback: `Te quedas el amuleto. En cuanto toca tu piel, te susurra respuestas útiles y cosas que no quieres saber. Te dice que la frecuencia de Vance tendrá un punto ciego durante los aplausos del descanso. También te pregunta cuál de tus dedos usas menos.`,
+            effects: { amuleto: 1, frecuencia: 1, cordura: -1 }
+          },
+          B: {
+            feedback: `Rompes el amuleto contra el suelo. El hueso grita con la voz de todos los profesores que has tenido. Martin vomita, llora y te abraza. No obtienes información clara, pero conservas algo parecido a la humanidad, y eso en Miskatonic empieza a parecer una herramienta práctica.`,
+            effects: { julian: 1, cordura: 1 }
+          }
+        }
+      },
+      {
+        title: "VIII. La fiesta de Delta Nu",
+        paragraphs: () => [
+          `La noche cae sobre el campus y, como si nadie hubiese visto ventanas rotas, uñas sangrantes ni fluidos imposibles, la fraternidad Delta Nu organiza una fiesta clandestina. La casa está llena de estudiantes que quieren olvidar el examen y la manifestación. Vance eligió bien sus tres emociones: miedo, ira y ahora euforia.`,
+          `La música de jazz suena distorsionada. El saxofón parece dar vueltas por el techo antes de entrar en los oídos. Cada carcajada llega medio segundo tarde, como si la habitación fuese una grabación mal sincronizada. En la mesa de bebidas, varias ampollas azules han sido mezcladas con ponche.`,
+          state.periodista > 0
+            ? `Peter, el periodista, aparece disfrazado de camarero para investigar lo que llama “la ruta del licor universitario”. Sin querer, ha fotografiado al ayudante de Vance conectando un pequeño modulador a los altavoces de la fiesta.`
+            : `En el segundo piso ves a Julian. Está de pie junto a la barandilla, rígido, mirando el baile sin parpadear. No parece borracho. Parece colgado de hilos invisibles.`
+        ],
+        choiceText: `Opción A: cortar la música y examinar los altavoces. Opción B: subir de inmediato a por Julian.`,
+        choices: {
+          A: {
+            feedback: `Tiras del cable principal. La música muere y la sala entera suspira, decepcionada, como si le hubieras quitado comida. Detrás de un altavoz encuentras un modulador de cobre conectado a una batería. No es el dispositivo final, pero te enseña cómo Vance está usando el sonido para alinear emociones.`,
+            effects: { esquema: 1, sabotaje: 1, frecuencia: 1 }
+          },
+          B: {
+            feedback: `Subes las escaleras empujando parejas y vasos. Julian te ve venir. Durante un segundo, su rostro se rompe en una súplica auténtica. Luego algo detrás de sus ojos tira de él como de una marioneta, y sonríe con una boca que no sabe sonreír.`,
+            effects: { julian: 1, cordura: -1 }
+          }
+        }
+      },
+      {
+        title: "IX. Julian en el segundo piso",
+        paragraphs: () => [
+          `Julian te espera en un dormitorio lleno de abrigos y botellas escondidas. La ventana está abierta aunque llueve. En la pared, alguien ha pintado la mascota de Miskatonic, un tejón blanco, pero el animal parece girar la cabeza cada vez que apartas la vista.`,
+          `Julian habla con dos voces. Una es suya, rota y asustada. La otra es plana, profesoral, paciente. “El coro necesita todas las voces para el gran juego”, dice. “El aplauso será la bisagra. El público abrirá la puerta sin saber que tiene manos”.`,
+          `Cuando intentas acercarte, Julian ataca. No es un golpe torpe de estudiante enfermo, sino un movimiento seco y excesivo, como si alguien hubiese estudiado la mecánica humana desde fuera y hubiese decidido exagerarla. En el forcejeo, su chaqueta se rasga y cae un esquema del sistema de megafonía del estadio.`
+        ],
+        choiceText: `Opción A: sujetar a Julian sin hacerle daño e intentar hablarle. Opción B: golpearlo para apartarlo y coger el esquema de megafonía.`,
+        choices: {
+          A: {
+            feedback: `Lo abrazas como se abraza a alguien que se está ahogando. Julian te araña la cara, pero durante un instante vuelve a reconocerte. Susurra: “No escuches el aplauso final. Hay cables rojos bajo la tribuna norte”. Luego salta por la ventana hacia el porche y desaparece bajo la lluvia.`,
+            effects: { julian: 2, heridas: 1, esquema: 1, acceso: 1 }
+          },
+          B: {
+            feedback: `Lo golpeas con una lámpara. Julian cae contra la cómoda y por un segundo oyes un chillido que no sale de su garganta, sino de la habitación entera. Coges el esquema de megafonía. Cuando miras de nuevo, Julian ya ha saltado por la ventana.`,
+            effects: { esquema: 2, heridas: 1, cordura: -1 }
+          }
+        }
+      },
+      {
+        title: "X. Medianoche en el observatorio",
+        paragraphs: () => [
+          `La fiesta queda atrás, pero no puedes dormir. El campus parece una máquina enfriándose después de haber trabajado demasiado. Caminas sin rumbo hasta el viejo observatorio, donde una pareja discute en los jardines. Ella acusa a su novio de estar enamorado de otra. Él responde que ya no entiende la palabra “otra”.`,
+          `El joven ha pasado semanas mirando un punto vacío entre las estrellas. Te deja mirar por el telescopio. Al principio no ves nada. Luego comprendes que el vacío no está vacío: es una zona donde la mirada resbala, una costura oscura cosida entre constelaciones. Cuando respiras, la costura late.`,
+          `En una mesa hay notas astronómicas mezcladas con cálculos acústicos. Alguien ha relacionado la posición de ese punto con el estadio de fútbol americano y con la hora exacta del último cuarto del partido contra Harrow. La novia del joven llora. Él ya ha olvidado su nombre.`
+        ],
+        choiceText: `Opción A: estudiar las notas del observatorio aunque duela mirarlas. Opción B: alejar al joven del telescopio y llevar a la pareja a un lugar seguro.`,
+        choices: {
+          A: {
+            feedback: `Estudias las notas. La brecha no aparecerá en cualquier sitio: necesita una multitud, una emoción sincronizada y un punto celeste que haga de caja de resonancia. Ahora sabes cuándo ocurrirá el máximo peligro: cuando el público aplauda durante la última jugada del partido.`,
+            effects: { frecuencia: 1, pruebas: 1, cordura: -1, observatorio: 1 }
+          },
+          B: {
+            feedback: `Cierras el observatorio y obligas al joven a bajar la mirada. Al principio se resiste; luego recuerda el nombre de su novia y rompe a llorar. Ella te da una linterna potente del equipo de astronomía. No entiendes cómo ayudará, pero su luz no parpadea aunque la noche se tense alrededor.`,
+            effects: { cordura: 1, acceso: 1, observatorio: 1 }
+          }
+        }
+      },
+      {
+        title: "XI. Mañana del segundo día",
+        paragraphs: () => [
+          `Amanece con un cielo demasiado claro. Las noticias universitarias hablan del gran partido contra Harrow, de espíritu deportivo y de normalidad académica. Nadie menciona a Julian. Nadie menciona la manifestación. En Miskatonic, la normalidad no es ausencia de horror, sino su forma administrativa.`,
+          `En la cafetería, el quarterback estrella del equipo bebe un tónico verdoso que le tiñe los labios. Sus reflejos son imposibles: atrapa una taza que cae a su espalda sin mirar. Pero bajo el cuello del uniforme, su piel empieza a formar escamas finas que rechazan la luz de la ventana.`,
+          `En otra mesa, Peter revisa fotografías si lo dejaste acompañarte. Si no, un ejemplar del periódico universitario recoge teorías delirantes sobre alcohol, mafia y corrupción. Entre absurdos, hay una verdad: varios expulsados eran pacientes de Vance y todos dejaron de asistir a clase después de “sesiones de relajación fisiológica”.`
+        ],
+        choiceText: `Opción A: seguir al quarterback y averiguar qué relación tiene Harrow con el tónico. Opción B: buscar más pruebas sobre los expulsados y las sesiones de Vance.`,
+        choices: {
+          A: {
+            feedback: `Sigues al quarterback hasta los vestuarios. Allí encuentras botellas del tónico enviadas por un profesor visitante de Harrow. Mejoran los reflejos, pero también vuelven al equipo más sensible al sonido. Vance no solo afina al público: también ha preparado a los jugadores para que el partido se mantenga dramático hasta el final.`,
+            effects: { tonic: 1, pruebas: 1, acceso: 1 }
+          },
+          B: {
+            feedback: `Reúnes nombres, horarios y fichas médicas. Los estudiantes expulsados no eran inestables: habían rechazado continuar con las pruebas de Vance. Algunos dibujaron los mismos patrones que Julian. Uno escribió una frase repetida: “la puerta se abre desde el aplauso, no desde la llave”.`,
+            effects: { pruebas: 2, frecuencia: 1 }
+          }
+        }
+      },
+      {
+        title: "XII. La mascota equivocada",
+        paragraphs: () => [
+          `Antes del mediodía, una fraternidad rival intenta robar la mascota de Miskatonic para humillar al equipo durante el partido. El plan habría sido idiota en circunstancias normales. En Miskatonic, además, han robado el tejón equivocado: un espécimen disecado del departamento de biología, traído de una expedición al valle del Miskatonic.`,
+          `Lo encuentras en un carrito de lavandería, rodeado de estudiantes que discuten. El animal está rígido, pero cada vez que nadie lo mira directamente aparece en una posición distinta. Sus ojos de cristal reflejan no el pasillo, sino una grada llena de público aplaudiendo bajo un cielo violeta.`,
+          `La broma amenaza con terminar en pelea. El ambiente vuelve a cargarse de esa emoción colectiva que has empezado a reconocer como un olor. Miedo, ira, euforia: todas son notas de una misma melodía. Tal vez puedas usar el caos para conseguir una credencial del estadio, o detenerlo antes de que alimente la resonancia.`
+        ],
+        choiceText: `Opción A: aprovechar el caos para robar una credencial de acceso al estadio. Opción B: resolver la pelea y encerrar el espécimen antes de que empeore la resonancia.`,
+        choices: {
+          A: {
+            feedback: `Mientras todos gritan, coges una credencial del comité deportivo. No es heroico, pero abre puertas. El tejón disecado aparece de pronto mirando hacia ti desde lo alto de una taquilla. Por un instante, sus bigotes deletrean la palabra “tarde”.`,
+            effects: { acceso: 2, cordura: -1, mascota: 1 }
+          },
+          B: {
+            feedback: `Gritas lo bastante fuerte para que te escuchen y obligas a los estudiantes a devolver el espécimen al departamento de biología. Cuando cierras la vitrina, el tejón disecado parpadea una vez. Quizá agradecido. Quizá tomando nota.`,
+            effects: { cordura: 1, sabotaje: 1, mascota: 1 }
+          }
+        }
+      },
+      {
+        title: "XIII. El plan antes del partido",
+        paragraphs: () => [
+          `A primera hora de la tarde, todas las pistas convergen en el estadio. Vance necesita el rugido del público, la tensión deportiva y el aplauso final. Julian será usado como foco humano. Los moduladores pequeños de la fiesta eran ensayos. El dispositivo verdadero estará conectado a la megafonía principal.`,
+          state.esquema > 0
+            ? `Gracias al esquema de megafonía, sabes que hay dos puntos críticos: la cabina de retransmisión, desde donde puede emitirse una señal al estadio entero, y los sótanos bajo la tribuna norte, donde pasan los cables de alimentación de los amplificadores.`
+            : `Sin el esquema completo, solo tienes intuiciones y fragmentos. La cabina de retransmisión domina el sonido del estadio. Los sótanos, si las palabras de Julian o Abner eran ciertas, contienen los cables que alimentan los amplificadores.`,
+          `No puedes cubrirlo todo. Si Vance te descubre demasiado pronto, no habrá segunda oportunidad. Necesitas elegir una entrada al estadio y confiar en que las decisiones de las últimas veinticuatro horas hayan dejado suficientes puertas abiertas.`
+        ],
+        choiceText: `Opción A: intentar entrar por la cabina de retransmisión. Opción B: intentar entrar por los sótanos de la tribuna norte.`,
+        choices: {
+          A: {
+            feedback: `Decides ir a la cabina. Desde allí podrías hablar al público, interrumpir la emisión o lanzar una frecuencia inversa si consigues tiempo suficiente. También es el lugar más visible, y Vance no será tan torpe como para dejarlo sin vigilancia.`,
+            effects: { cabina: 1 }
+          },
+          B: {
+            feedback: `Decides bajar a los sótanos. Los cables no tienen voluntad, no obedecen a dioses ni a profesores. Si puedes cortar la alimentación correcta, quizá todo el ritual se quede en silencio antes de nacer.`,
+            effects: { sotanoEstadio: 1 }
+          }
+        }
+      },
+      {
+        title: "XIV. Miskatonic contra Harrow",
+        paragraphs: () => [
+          `El estadio está abarrotado. Las gradas son un mar de bufandas, pancartas, cerveza clandestina y gargantas ansiosas. Miskatonic contra Harrow. El partido del año. El tipo de acontecimiento que una universidad finge organizar por deporte y en realidad utiliza para fabricar recuerdos comunes.`,
+          `Cuando el equipo local sale al campo, el aplauso golpea tu pecho como una puerta. No es metáfora. Lo sientes físicamente. Cada palma añade una partícula a algo invisible. En el palco de profesores, el Dr. Vance sonríe con serenidad médica. Julian está junto a él, pálido, sujetando un artefacto de cobre conectado a una caja de válvulas.`,
+          state.gafas > 0
+            ? `Con las gafas, la visión es peor. Cada espectador proyecta un hilo transparente hacia el artefacto. Los hilos tiemblan con la emoción del partido. Sobre el estadio, el cielo tiene una costura violeta, aún cerrada, esperando el tirón exacto.`
+            : `Sin las gafas, solo ves nubes extrañamente inmóviles sobre el estadio. Pero tus dientes vibran con cada ovación, y eso basta para saber que el partido ya no es un partido. Es una garganta colectiva calentando la voz.`
+        ],
+        choiceText: `Opción A: moverte entre el público para llegar a la cabina sin llamar la atención. Opción B: bajar por los accesos de mantenimiento hacia las tripas del estadio.`,
+        choices: {
+          A: {
+            feedback: `Te mezclas con el público. Cada cántico amenaza con arrastrarte. Si Peter te acompaña, te abre paso diciendo que sois prensa; si no, tienes que mentir, empujar y sonreír a guardias que no quieren perderse el partido. Llegas cerca de la escalera a la cabina.`,
+            effects: { cabina: 1, cordura: state.periodista > 0 ? 0 : -1 }
+          },
+          B: {
+            feedback: `Desciendes por una puerta de mantenimiento. Si tienes llave, la cerradura cede; si no, fuerzas el pestillo y te cortas la mano. Abajo, el rugido del estadio se convierte en un trueno de baja frecuencia. Las tuberías tiemblan como instrumentos de viento enormes.`,
+            effects: { sotanoEstadio: 1, acceso: state.acceso > 0 ? 0 : -1, heridas: state.acceso > 0 ? 0 : 1 }
+          }
+        }
+      },
+      {
+        title: "XV. Los sótanos de la tribuna norte",
+        paragraphs: () => [
+          `Bajo la tribuna norte, el estadio deja de parecer una construcción humana. Los pasillos de hormigón están llenos de cables, tuberías y ecos. Cada aplauso del público baja por las paredes convertido en un golpe sordo. En una sala eléctrica, tres cables rojos alimentan los amplificadores principales.`,
+          state.julian > 1
+            ? `Recuerdas la voz de Julian en la fiesta: cables rojos bajo la tribuna norte. También recuerdas cómo te miró antes de saltar por la ventana. Aún queda alguien ahí dentro. No sabes si podrás salvarlo, pero sabes que intentó ayudarte.`
+            : `No tienes plena seguridad de cuáles son los cables correctos. El esquema, si lo conseguiste, ayuda; si no, todo parece una maraña diseñada por un ingeniero que odiaba a los futuros intrusos.`,
+          `Entonces oyes pasos. No de guardias. Demasiado sincronizados. Varios estudiantes expulsados aparecen al fondo del pasillo, caminando con la misma rigidez de Julian. Sus sombras se adelantan a sus cuerpos. No atacan todavía. Esperan la siguiente ovación.`
+        ],
+        choiceText: `Opción A: cortar los cables rojos de alimentación. Opción B: esconderte y seguir a los estudiantes hasta el dispositivo principal.`,
+        choices: {
+          A: {
+            feedback: state.esquema > 0 || state.julian > 1
+              ? `Cortas los cables correctos. Las luces del estadio parpadean. La megafonía gime y pierde potencia. No has detenido a Vance, pero has herido su instrumento. Arriba, el público abuchea por el fallo técnico, y esa emoción desordenada rompe parte de la sincronía.`
+              : `Cortas cables casi al azar. Algo explota en la caja de distribución y te lanza contra la pared. La megafonía falla solo unos segundos, pero esos segundos pueden importar. También importan tus costillas. Duelen muchísimo.`,
+            effects: state.esquema > 0 || state.julian > 1
+              ? { sabotaje: 2, cordura: 1 }
+              : { sabotaje: 1, heridas: 2 }
+          },
+          B: {
+            feedback: `Sigues a los estudiantes expulsados por un túnel estrecho hasta una cámara bajo el palco de profesores. Allí ves el dispositivo verdadero: una jaula de cobre, válvulas, bobinas y una membrana gris que late con el sonido del público. Julian espera en el centro con el artefacto entre las manos.`,
+            effects: { artefacto: 1, pruebas: 1, cordura: -1 }
+          }
+        }
+      },
+      {
+        title: "XVI. La cabina de retransmisión",
+        paragraphs: () => [
+          `La cabina de retransmisión huele a café, sudor y electricidad caliente. Dos comentaristas narran el partido con entusiasmo forzado. No parecen corruptos; solo son hombres haciendo su trabajo mientras el cielo aprende a partirse sobre ellos. En la consola central, una luz nueva parpadea al ritmo de las ovaciones.`,
+          state.frecuencia > 1
+            ? `Gracias a tus notas, reconoces el patrón. La señal de Vance no es audible para el público, pero viaja por debajo de la música, de los anuncios y de la respiración del estadio. Si inviertes la fase y la emites durante un aplauso, podrías desordenar la emoción colectiva.`
+            : `Sin entender la señal, todo se reduce a botones, cables y suerte. Puedes apagar la emisión o usar el micrófono para alertar al público, aunque quizá el pánico sea otra emoción colectiva que Vance pueda aprovechar.`,
+          `A través del cristal ves a Julian junto a Vance. El partido está empatado. Queda poco para el último cuarto. Cada jugada aumenta la tensión. El público no está mirando un deporte. Está cargando una batería.`
+        ],
+        choiceText: `Opción A: usar la consola para emitir una frecuencia inversa o interferencia. Opción B: tomar el micrófono y denunciar públicamente a Vance.`,
+        choices: {
+          A: {
+            feedback: state.frecuencia > 1
+              ? `Ajustas la consola con manos temblorosas. La frecuencia inversa no suena, pero la notas en los huesos. Durante unos segundos, los aplausos se vuelven torpes, desiguales, humanos. La costura del cielo pierde tensión.`
+              : `Giras controles sin comprender del todo. La interferencia estalla por los altavoces como un chillido metálico. Parte del público se tapa los oídos; otra parte se enfurece. No es elegante, pero rompe la sincronía durante un minuto precioso.`,
+            effects: state.frecuencia > 1
+              ? { frecuencia: 1, sabotaje: 2, publicoCalmado: 1 }
+              : { sabotaje: 1, cordura: -1 }
+          },
+          B: {
+            feedback: state.pruebas > 3 || state.periodista > 0
+              ? `Hablas al estadio. Tu voz tiembla, pero Peter o las pruebas dan peso a tus palabras. Nombras a Vance, los experimentos, los expulsados, Julian. La multitud no entiende todo, pero duda. Y la duda es lo contrario de la emoción sincronizada.`
+              : `Tomas el micrófono y acusas a Vance, pero suena como delirio. Algunos ríen, otros abuchean, muchos aplauden para que te callen. Sin pruebas suficientes, solo has añadido otra emoción intensa al estadio.`,
+            effects: state.pruebas > 3 || state.periodista > 0
+              ? { publicoCalmado: 2, sabotaje: 1, pruebas: 1 }
+              : { cordura: -1, sabotaje: -1 }
+          }
+        }
+      },
+      {
+        title: "XVII. El aplauso final",
+        paragraphs: () => [
+          `El partido llega al último cuarto. Miskatonic y Harrow empatan. El quarterback escamoso corre como un animal de aguas profundas, esquivando rivales con reflejos imposibles. Cada avance hace rugir al público. Vance no necesita ganar o perder; necesita que todos sientan al mismo tiempo.`,
+          `Cuando faltan segundos, Julian levanta el artefacto de cobre. Sus brazos tiemblan. La membrana del dispositivo se infla con el sonido del estadio. Por encima de las gradas, el cielo se abre en una línea violeta. No hay tentáculos todavía. Primero llega el sonido sólido: una presión con forma, un aplauso hecho carne.`,
+          state.sabotaje > 2
+            ? `Tus sabotajes han debilitado el sistema. La megafonía cruje, la señal de Vance llega rota, y parte del público está confuso. Pero la puerta sigue intentando abrirse. El último empujón dependerá de lo que hagas ahora.`
+            : `Has llegado al momento final con demasiado poco dañado. La señal fluye casi limpia. Las bocas del público se abren al unísono. Vance llora de alegría académica, como si el fin del mundo fuese una publicación revisada por pares.`
+        ],
+        choiceText: `Opción A: enfrentarte a Vance y destruir el artefacto de cobre. Opción B: llegar hasta Julian y usar su nombre para romper el control.`,
+        choices: {
+          A: {
+            feedback: `Te lanzas contra Vance. El profesor parece frágil hasta que lo tocas: su piel vibra como una cuerda tensada. El artefacto cae, rueda y golpea el suelo con un sonido de campana submarina. Puedes romperlo, pero la brecha tira de ti como si quisiera aplaudir con tus huesos.`,
+            effects: { vanceNeutralizado: 1, sabotaje: 1, heridas: 1, finalAction: "artefacto" }
+          },
+          B: {
+            feedback: state.julian > 1
+              ? `Gritas el nombre de Julian, no como dato, sino como recuerdo: la litera desordenada, los cafés robados, los apuntes compartidos, las bromas antes de dormir. Julian parpadea. Por un segundo, sus manos dejan de obedecer a Vance. Ese segundo es una grieta en el ritual.`
+              : `Gritas el nombre de Julian, pero no sabes si te oye. Sus ojos están vacíos. Aun así, algo dentro de él tropieza. El artefacto baja unos centímetros. No basta para salvarlo, pero quizá baste para estorbar al Nexo.`,
+            effects: state.julian > 1
+              ? { julian: 2, sabotaje: 2, finalAction: "julian" }
+              : { sabotaje: 1, cordura: -1, finalAction: "julian" }
+          }
+        }
+      },
+      {
+        title: "XVIII. La decisión imposible",
+        paragraphs: () => [
+          `El estadio entra en un silencio antinatural. No porque el público calle, sino porque durante un instante todos los sonidos se colocan en fila, esperando permiso. Ves estudiantes con las manos congeladas a medio aplaudir, jugadores suspendidos entre pasos, gotas de lluvia inmóviles bajo los focos.`,
+          `En la costura violeta del cielo aparece algo menor, si esa palabra puede aplicarse a una masa de geometría viva y apetito sonoro. No mira con ojos. Escucha. Busca la emoción común que le permitirá terminar de nacer en el mundo. Vance extiende los brazos, convencido de que la historia recordará su nombre.`,
+          `Tienes una última posibilidad. Puedes intentar colapsar la brecha usando todo lo que has aprendido: sabotajes, frecuencia inversa, pruebas, dudas, cables cortados, humanidad recuperada. O puedes abandonar el estadio arrastrando a Julian si aún queda algo de él, salvando una vida mientras Arkham empieza a perder la suya.`
+        ],
+        choiceText: `Opción A: intentar colapsar la brecha cueste lo que cueste. Opción B: sacar a Julian del estadio y huir.`,
+        choices: {
+          A: {
+            feedback: `Decides cerrar la puerta. No porque seas valiente, sino porque entiendes por fin el mecanismo: una multitud sincronizada abrió el umbral, pero una voluntad discordante puede desafinarlo. Te preparas para convertirte en la nota equivocada.`,
+            effects: { finalAction: "cerrar" }
+          },
+          B: {
+            feedback: `Decides salvar a Julian. Tal vez sea egoísmo. Tal vez sea la única forma de no convertirte en otro profesor que sacrifica personas a una idea. Tomas su cuerpo tembloroso y corres hacia la salida mientras el cielo empieza a aplaudir.`,
+            effects: { finalAction: "huir" }
+          }
+        }
+      }
+    ];
+
+    function getEnding() {
+      const power =
+        state.sabotaje +
+        state.frecuencia +
+        state.publicoCalmado +
+        state.vanceNeutralizado +
+        Math.floor(state.pruebas / 2);
+
+      if (state.finalAction === "cerrar") {
+        if (power >= 8 && state.cordura > 0 && state.heridas < 4) {
+          return {
+            title: "Final: La nota discordante",
+            paragraphs: [
+              `Emites la frecuencia inversa en el instante exacto en que el público intenta aplaudir. No suena como música. Suena como miles de personas recordando de pronto que están solas dentro de su propio cráneo.`,
+              `La sincronía se rompe. Los aplausos se vuelven torpes, después dispersos, después humanos. La costura violeta se retuerce sobre el estadio como una boca privada de aire. Vance grita que habéis arruinado un nacimiento, pero nadie le escucha. Por primera vez en dos días, la multitud no siente lo mismo.`,
+              `Julian cae al suelo y respira. El cielo se cierra con un trueno seco. Al amanecer, la universidad hablará de fallo eléctrico, histeria colectiva y posible fraude deportivo. Tú conservarás suficientes pruebas para destruir la carrera de Vance, aunque no para explicar la forma que tenía el sonido cuando intentó entrar en el mundo.`,
+              `Julian tardará años en volver a dormir sin oír aplausos. Tú tampoco soportarás los estadios, los teatros ni las ovaciones académicas. Pero Arkham sigue en pie. Miskatonic sigue fingiendo normalidad. Y a veces, eso cuenta como victoria.`
+            ]
+          };
+        }
+
+        if (power >= 5) {
+          return {
+            title: "Final: Puerta cerrada con grietas",
+            paragraphs: [
+              `Haces lo correcto demasiado tarde o con demasiadas piezas rotas. La frecuencia inversa atraviesa los altavoces, los cables cortados chisporrotean, el público duda, y Julian lucha contra aquello que lo usa como instrumento.`,
+              `La brecha no se abre del todo. Tampoco se cierra limpiamente. Algo pequeño cae sobre el campo: no un dios, ni siquiera un monstruo completo, sino una idea con tentáculos, un fragmento hambriento de sonido. Se disuelve cuando deja de recibir aplausos, pero no antes de tocar a cientos de espectadores.`,
+              `Vance desaparece durante el apagón. Julian sobrevive, aunque algunas mañanas responde preguntas antes de que se las hagan. La universidad cancela el resto de la temporada por “riesgos estructurales”. En las gradas vacías, si das una palmada, otra palmada responde desde debajo del hormigón.`,
+              `Has evitado el fin de Arkham, pero no has impedido que algo aprenda el camino.`
+            ]
+          };
+        }
+
+        return {
+          title: "Final: Ovación para el Nexo",
+          paragraphs: [
+            `Intentas cerrar la brecha, pero el estadio ya está demasiado sincronizado. Tu voz se pierde entre miles de manos. Tus sabotajes son débiles, tus pruebas insuficientes, tus conocimientos incompletos.`,
+            `El cielo se rasga en violeta. El público aplaude con tal fuerza que las palmas se abren, sangran y siguen golpeando. El sonido toma forma sobre el campo: columnas blandas, arcos imposibles, tentáculos hechos de presión acústica. Vance ríe hasta que la primera estructura sonora lo atraviesa como un diapasón humano.`,
+            `Huyes entre gradas que se devoran a sí mismas. Algunos estudiantes se abrazan llorando; otros arrancan asientos para lanzarlos contra algo que no tiene cuerpo. Cuando sales del estadio, Arkham ya vibra. Todas las ventanas de la ciudad tiemblan al mismo ritmo.`,
+              `Más tarde, nadie recordará quién ganó el partido. Solo recordarán el aplauso. Y el aplauso recordará a todos.`
+          ]
+        };
+      }
+
+      if (state.finalAction === "huir") {
+        if (state.julian >= 4 && state.sabotaje >= 4) {
+          return {
+            title: "Final: Dos supervivientes bajo la lluvia",
+            paragraphs: [
+              `Arrastras a Julian por los túneles de mantenimiento mientras la megafonía se desgarra a tus espaldas. Tus sabotajes no bastan para cerrar la brecha, pero sí para volverla inestable. El estadio se queda sin voz durante unos segundos, y esos segundos os compran la vida.`,
+              `Julian despierta en la salida norte, empapado y temblando. No sabe dónde está. No recuerda el artefacto. Recuerda, en cambio, que alguien lo llamó por su nombre cuando ya casi no tenía uno. Sobre el estadio, la costura violeta se abre y se cierra como una herida mal cosida.`,
+              `Arkham no cae esa noche, pero cambia. Durante meses, hay brotes de risa colectiva, clases enteras que se quedan mudas, auditorios que prohíben los aplausos. Tú y Julian abandonáis Miskatonic antes de terminar el curso. No habéis salvado el mundo. Habéis salvado una amistad y retrasado una catástrofe. A veces, eso también es una forma de resistencia.`
+            ]
+          };
+        }
+
+        if (state.acceso > 1 || state.periodista > 0 || state.conserje > 0) {
+          return {
+            title: "Final: La huida de Arkham",
+            paragraphs: [
+              `Escapas del estadio usando credenciales, túneles o pura suerte. Detrás de ti, el partido termina con una ovación que no parece humana. El cielo se abre sobre la ciudad y derrama un color que no pertenece a ningún espectro razonable.`,
+              `Si Julian va contigo, respira pero no despierta. Si no, su voz llega por los altavoces durante kilómetros, repitiendo jugadas de un partido que ya no existe. Peter, si sobrevivió, publicará una edición especial que nadie creerá hasta que las fotos empiecen a moverse.`,
+              `Te marchas de Arkham en el primer tren. Desde la ventanilla ves el estadio como una boca iluminada. A tu alrededor, los pasajeros aplauden al revisor por ninguna razón. Uno, dos. Uno, dos. Uno, dos. Te tapas los oídos, pero el sonido ya está dentro.`
+            ]
+          };
+        }
+
+        return {
+          title: "Final: La ciudad que aplaude",
+          paragraphs: [
+            `Intentas huir, pero las salidas del estadio desembocan unas en otras. Cada escalera sube hacia gradas más llenas. Cada pasillo vuelve al rugido. Al final comprendes que el edificio entero se ha convertido en un instrumento y que tú estás dentro de la caja de resonancia.`,
+            `La brecha se abre con delicadeza. No hay explosión. No hay fuego. Solo una ovación perfecta. La gente sonríe mientras pierde la individualidad. Sus manos se mueven solas. Sus voces se funden en una nota cálida y obediente.`,
+            `Cuando la mañana llega, Arkham sigue en los mapas, pero las noticias hablan de una celebración espontánea que dura horas, luego días. En todas las grabaciones se oye una frase bajo el aplauso: “El coro está casi completo”.`
+          ]
+        };
+      }
+
+      return {
+        title: "Final: Señal perdida",
+        paragraphs: [
+          `La historia queda suspendida antes de su resolución. En algún lugar, una multitud espera una orden que parece un aplauso.`,
+          `Fin.`
+        ]
+      };
+    }
+
+    async function runNode(index) {
+      const node = nodes[index];
+      chapterValue.textContent = node.title;
+      setStatus("Leyendo: " + node.title);
+
+      const paragraphs = node.paragraphs();
+
+      await speakQueue(paragraphs);
+
+      if (!storyRunning) return;
+
+      const choiceIntro =
+        node.choiceText +
+        " Tienes veinte segundos para elegir. Inclina a la derecha para opción A. Inclina a la izquierda para opción B.";
+
+      storyBox.textContent = choiceIntro;
+      await speakOne(choiceIntro);
+
+      if (!storyRunning) return;
+
+      const result = await waitForChoice();
+
+      if (!storyRunning) return;
+
+      const chosen = node.choices[result.choice];
+
+      applyEffects(chosen.effects);
+
+      const feedback =
+        result.source === "azar por no elegir a tiempo"
+          ? "No has elegido a tiempo. El azar decide la opción " + result.choice + ". " + chosen.feedback
+          : "Has elegido la opción " + result.choice + ". " + chosen.feedback;
+
+      setStatus("Elegida opción " + result.choice + ".");
+      await speakQueue([feedback]);
+    }
+
+    async function startStory() {
+      if (storyRunning) return;
+
+      try {
+        if (!sensorsStarted) {
+          await startSensors();
+        }
+
+        await requestWakeLock();
+
+        resetState();
+
+        storyRunning = true;
+        storyBox.textContent = "";
+        lastChoiceValue.textContent = "---";
+        countdownValue.textContent = "---";
+
+        setStatus("Iniciando historia.");
+
+        await speakOne(
+          "Comienza La Frecuencia del Aplauso. Mantén el móvil en zona neutra durante las pausas. Inclina a la derecha para opción A, o a la izquierda para opción B. Si no eliges en veinte segundos, el azar decidirá."
+        );
+
+        for (let i = 0; i < nodes.length; i++) {
+          if (!storyRunning) return;
+          await runNode(i);
+        }
+
+        if (!storyRunning) return;
+
+        const ending = getEnding();
+        chapterValue.textContent = ending.title;
+        setStatus(ending.title);
+
+        await speakQueue([
+          ending.title,
+          ...ending.paragraphs,
+          "Fin."
+        ]);
+
+        setStatus("Historia terminada.");
+        storyRunning = false;
+
+      } catch (error) {
+        storyRunning = false;
+        setStatus("Error: " + error.message);
+        await speakOne("Ha ocurrido un error iniciando la historia.");
+      }
+    }
+
+    function stopEverything() {
+      storyRunning = false;
+      speaking = false;
+      waitingForChoice = false;
+      neutralArmed = false;
+
+      clearTimeout(choiceTimeout);
+      clearInterval(countdownInterval);
+
+      speechSynthesis.cancel();
+
+      countdownValue.textContent = "---";
+      chapterValue.textContent = "---";
+      lastChoiceValue.textContent = "---";
+
+      setStatus("Detenido. Puedes iniciar de nuevo.");
+      storyBox.textContent = "Historia detenida.";
+    }
+
+    startSensorsButton.addEventListener("click", async () => {
+      try {
+        await startSensors();
+      } catch (error) {
+        setStatus("Error iniciando sensores: " + error.message);
+      }
+    });
+
+    speakButton.addEventListener("click", () => {
+      speakOne("Prueba de voz. Si escuchas esto, la síntesis de voz funciona correctamente.");
+    });
+
+    startStoryButton.addEventListener("click", startStory);
+
+    stopButton.addEventListener("click", stopEverything);
+
+    manualAButton.addEventListener("click", () => {
+      resolveChoice("A", "botón manual");
+    });
+
+    manualBButton.addEventListener("click", () => {
+      resolveChoice("B", "botón manual");
+    });
+  </script>
+</body>
+</html>
